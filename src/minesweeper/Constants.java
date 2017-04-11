@@ -8,7 +8,7 @@ public final class Constants {
     public static int COLUMNS = 9;
     public static int MINES = 10;
     
-    public static double CELL_START_SIZE = 30;
+    public static double CELL_START_SIZE = 40;
     public static double FIELD_START_WIDTH = Constants.COLUMNS * Constants.CELL_START_SIZE + (Constants.COLUMNS);
     public static double FIELD_START_HEIGHT = Constants.ROWS * Constants.CELL_START_SIZE + (Constants.ROWS);
     

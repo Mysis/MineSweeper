@@ -22,8 +22,6 @@ public class Cell extends StackPane {
         cellModel = model;
 
         Rectangle shape = new Rectangle(size.get(), size.get());
-        //shape.setStrokeWidth(0.5);
-        //shape.setStroke(Constants.BACKGROUND_COLOR);
         shape.widthProperty().bind(size);
         shape.heightProperty().bind(size);
         shape.fillProperty().bind(Bindings.when(Bindings.createBooleanBinding(() -> model.stateProperty().get() == State.REVEALED, model.stateProperty())).then(Constants.CELL_REVEALED_COLOR).otherwise(Constants.CELL_COLOR));
@@ -42,13 +40,15 @@ public class Cell extends StackPane {
         flag.visibleProperty().bind(Bindings.createBooleanBinding(() -> model.stateProperty().get() == State.FLAGGED, model.stateProperty()));
         
         if (!model.getMine()) {
-            Label surroundingText = new Label();
-            setAlignment(surroundingText, Pos.CENTER);
-            getChildren().add(surroundingText);
-            surroundingText.textProperty().bind(Bindings.when(Bindings.createBooleanBinding(() -> model.surroundingProperty().get() != 0, model.surroundingProperty())).then(model.surroundingProperty().asString()).otherwise(""));
-            surroundingText.scaleXProperty().bind(size.divide(Constants.CELL_START_SIZE));
-            surroundingText.scaleYProperty().bind(size.divide(Constants.CELL_START_SIZE));
-            surroundingText.visibleProperty().bind(Bindings.createBooleanBinding(() -> model.stateProperty().get() == State.REVEALED, model.stateProperty()));
+            if (model.getSurrounding() > 0) {
+                Label surroundingText = new Label();
+                setAlignment(surroundingText, Pos.CENTER);
+                getChildren().add(surroundingText);
+                surroundingText.textProperty().set(String.valueOf(model.getSurrounding()));
+                //surroundingText.textProperty().bind(Bindings.when(Bindings.createBooleanBinding(() -> model.surroundingProperty().get() != 0, model.surroundingProperty())).then(model.surroundingProperty().asString()).otherwise(""));
+                surroundingText.styleProperty().bind(Bindings.concat("-fx-font-size: ", size.divide(2).asString(), ";"));
+                surroundingText.visibleProperty().bind(Bindings.createBooleanBinding(() -> model.stateProperty().get() == State.REVEALED, model.stateProperty()));
+            }
         } else {
             Ellipse mine = new Ellipse(.25, .25);
             mine.setFill(Constants.MINE_COLOR);

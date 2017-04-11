@@ -18,6 +18,10 @@ public class Field extends GridPane {
             throw new ArithmeticException("The board isn't big enough for all the mines");
         }
         
+        newGame(rows, columns, mines, size);
+    }
+    
+    public void newGame(int rows, int columns, int mines, IntegerBinding size) {
         fieldModel = new FieldModel(rows, columns, mines);
         
         for (int x = 0; x < fieldModel.cells().size(); x++) {
@@ -43,5 +47,9 @@ public class Field extends GridPane {
                 alert.showAndWait();
             }
         });
+    }
+    
+    public FieldModel model() {
+        return fieldModel;
     }
 }
