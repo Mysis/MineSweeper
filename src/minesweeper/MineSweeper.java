@@ -1,15 +1,14 @@
 package minesweeper;
 
+import minesweeper.menus.GameMenus;
 import java.util.Optional;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.VBox;
 import javafx.scene.Scene;

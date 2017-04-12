@@ -1,6 +1,5 @@
 package minesweeper.view;
 
-import minesweeper.model.CellModel;
 import minesweeper.model.FieldModel;
 import javafx.beans.binding.IntegerBinding;
 import javafx.geometry.Insets;

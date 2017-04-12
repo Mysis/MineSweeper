@@ -30,15 +30,18 @@ public class GameContainer extends StackPane {
             }
             @Override
             protected int computeValue() {
-                if (prefHeightProperty().get() > prefWidthProperty().get()) {
-                    return (int) ((prefWidthProperty().get() - (Constants.COLUMNS - 1) - 2 * Constants.GAME_BOUNDARY_SIZE) / Constants.COLUMNS) - 1;
+                int width = (int) ((prefWidthProperty().get() - Constants.COLUMNS - 2 * Constants.GAME_BOUNDARY_SIZE) / Constants.COLUMNS) - 1;
+                int height = (int) ((prefHeightProperty().get() - Constants.ROWS - 2 * Constants.GAME_BOUNDARY_SIZE) / Constants.ROWS) - 1;
+                if (width > height) {
+                    return height;
                 } else {
-                    return (int) ((prefHeightProperty().get() - (Constants.ROWS - 1) - 2 * Constants.GAME_BOUNDARY_SIZE) / Constants.ROWS) - 1;
+                    return width;
                 }
             }
         };
         return calculateSize;
     }
+    
     public Field game() {
         return game;
     }
