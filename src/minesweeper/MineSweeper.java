@@ -1,6 +1,5 @@
 package minesweeper;
 
-import minesweeper.menus.GameMenus;
 import java.util.Optional;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -12,29 +11,49 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.VBox;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import minesweeper.menus.GameMenus;
+import minesweeper.menus.Settings;
+import minesweeper.model.GameConstants;
 import minesweeper.view.GameContainer;
 
 public class MineSweeper extends Application {
+    
+    GameMenus menu;
+    Settings settings;
+    GameContainer gameContainer;
+    VBox root;
+    Scene mainScene;
+    
+    Stage primaryStage;
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
 
-        VBox root = new VBox();
+        root = new VBox();
         root.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
-        GameMenus menu = new GameMenus();
-        GameContainer gameContainer = new GameContainer();
+        menu = new GameMenus();
+        settings = new Settings(primaryStage);
+        gameContainer = new GameContainer(new GameConstants(Constants.DEFAULT_ROWS, Constants.DEFAULT_COLUMNS, Constants.DEFAULT_MINES));
         root.getChildren().addAll(menu, gameContainer);
         
-        Scene scene = new Scene(root, Constants.BACKGROUND_COLOR);
+        mainScene = new Scene(root, Constants.BACKGROUND_COLOR);
+        gameContainer.prefWidthProperty().bind(mainScene.widthProperty());
+        gameContainer.prefHeightProperty().bind(mainScene.heightProperty().subtract(menu.heightProperty()));
         
-        menu.newGameItem().setOnAction(e -> gameContainer.game().newGame(Constants.ROWS, Constants.COLUMNS, Constants.MINES, gameContainer.calculateSize()));
+        menu.newGameItem().setOnAction(e -> newGame());
+        menu.settingsItem().setOnAction(e -> {
+            settings.showWindow();
+            if (settings.didSettingsChange()) {
+                newGame(settings.getResult());
+            }
+        });
         menu.exitItem().setOnAction(e -> primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST)));
-        
-        gameContainer.prefWidthProperty().bind(scene.widthProperty());
-        gameContainer.prefHeightProperty().bind(scene.heightProperty().subtract(menu.heightProperty()));
         
         primaryStage.setOnCloseRequest(event -> {
             Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -49,12 +68,27 @@ public class MineSweeper extends Application {
         });
         
         primaryStage.setTitle("Minesweeper");
-        primaryStage.setScene(scene);
+        primaryStage.setScene(mainScene);
         primaryStage.show();
+        gameContainer.removeBackground();
         
         primaryStage.setMinWidth(primaryStage.getWidth());
         primaryStage.setMinHeight(primaryStage.getHeight());
-        gameContainer.getChildren().remove(0);
+    }
+    
+    public void newGame() {
+        gameContainer.newGame();
+    }
+    
+    public void newGame(GameConstants constants) {
+        gameContainer.newGame(constants);
+        double[] size = Constants.calculateFieldStartSize(constants);
+        gameContainer.prefWidthProperty().unbind();
+        gameContainer.prefHeightProperty().unbind();
+        gameContainer.setPrefSize(size[0], size[1]);
+        primaryStage.sizeToScene();
+        gameContainer.prefWidthProperty().bind(mainScene.widthProperty());
+        gameContainer.prefHeightProperty().bind(mainScene.heightProperty().subtract(menu.heightProperty()));
     }
 
     public static void main(String[] args) {

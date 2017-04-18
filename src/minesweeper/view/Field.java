@@ -1,27 +1,23 @@
 package minesweeper.view;
 
-import minesweeper.model.FieldModel;
 import javafx.beans.binding.IntegerBinding;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
+import minesweeper.model.FieldModel;
+import minesweeper.model.GameConstants;
 
 public class Field extends GridPane {
     
     FieldModel fieldModel;
     
-    public Field(int rows, int columns, int mines, IntegerBinding size) throws ArithmeticException {
-        
-        if (mines > rows * columns) {
-            throw new ArithmeticException("The board isn't big enough for all the mines");
-        }
-        
-        newGame(rows, columns, mines, size);
+    public Field(GameConstants gameConstants, IntegerBinding size) {
+        newGame(gameConstants, size);
     }
     
-    public void newGame(int rows, int columns, int mines, IntegerBinding size) {
-        fieldModel = new FieldModel(rows, columns, mines);
+    public void newGame(GameConstants gameConstants, IntegerBinding size) {
+        fieldModel = new FieldModel(gameConstants);
         
         for (int x = 0; x < fieldModel.cells().size(); x++) {
             for (int y = 0; y < fieldModel.cells().get(x).size(); y++) {

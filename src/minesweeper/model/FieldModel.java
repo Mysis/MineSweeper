@@ -14,21 +14,22 @@ public class FieldModel {
     private ReadOnlyBooleanWrapper gameOver = new ReadOnlyBooleanWrapper(false);
     private ReadOnlyBooleanWrapper win = new ReadOnlyBooleanWrapper(false);
 
-    public FieldModel(int rows, int columns, int mines) {
+    public FieldModel(GameConstants gameConstants) {
 
         List<Boolean> minesBag = new ArrayList<>();
-        for (int i = 0; i < rows * columns; i++) {
-            if (mines > 0) {
+        int addMines = gameConstants.mines;
+        for (int i = 0; i < gameConstants.rows * gameConstants.columns; i++) {
+            if (addMines > 0) {
                 minesBag.add(true);
-                mines--;
+                addMines--;
             } else {
                 minesBag.add(false);
             }
         }
         Collections.shuffle(minesBag);
-        for (int i = 0; i < columns; i++) {
+        for (int i = 0; i < gameConstants.columns; i++) {
             cells.add(FXCollections.observableArrayList());
-            for (int j = 0; j < rows; j++) {
+            for (int j = 0; j < gameConstants.rows; j++) {
                 CellModel newCell = new CellModel(minesBag.get(0), gameOver.getReadOnlyProperty());
                 minesBag.remove(0);
                 if (newCell.getMine()) {
