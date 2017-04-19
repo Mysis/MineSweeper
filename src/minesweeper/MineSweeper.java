@@ -39,7 +39,7 @@ public class MineSweeper extends Application {
         root.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
         menu = new GameMenus();
         settings = new Settings(primaryStage);
-        gameContainer = new GameContainer(new GameConstants(Constants.DEFAULT_ROWS, Constants.DEFAULT_COLUMNS, Constants.DEFAULT_MINES));
+        gameContainer = new GameContainer(settings.getSettings());
         root.getChildren().addAll(menu, gameContainer);
         
         mainScene = new Scene(root, Constants.BACKGROUND_COLOR);
@@ -50,7 +50,7 @@ public class MineSweeper extends Application {
         menu.settingsItem().setOnAction(e -> {
             settings.showWindow();
             if (settings.didSettingsChange()) {
-                newGame(settings.getResult());
+                newGame(settings.getSettings());
             }
         });
         menu.exitItem().setOnAction(e -> primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST)));
@@ -71,7 +71,6 @@ public class MineSweeper extends Application {
         primaryStage.setScene(mainScene);
         primaryStage.show();
         gameContainer.removeBackground();
-        
         primaryStage.setMinWidth(primaryStage.getWidth());
         primaryStage.setMinHeight(primaryStage.getHeight());
     }
@@ -81,6 +80,8 @@ public class MineSweeper extends Application {
     }
     
     public void newGame(GameConstants constants) {
+        primaryStage.setMinWidth(0);
+        primaryStage.setMinHeight(0);
         gameContainer.newGame(constants);
         double[] size = Constants.calculateFieldStartSize(constants);
         gameContainer.prefWidthProperty().unbind();
@@ -89,6 +90,8 @@ public class MineSweeper extends Application {
         primaryStage.sizeToScene();
         gameContainer.prefWidthProperty().bind(mainScene.widthProperty());
         gameContainer.prefHeightProperty().bind(mainScene.heightProperty().subtract(menu.heightProperty()));
+        primaryStage.setMinWidth(primaryStage.getWidth());
+        primaryStage.setMinHeight(primaryStage.getHeight());
     }
 
     public static void main(String[] args) {

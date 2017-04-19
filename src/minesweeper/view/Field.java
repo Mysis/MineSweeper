@@ -1,10 +1,13 @@
 package minesweeper.view;
 
 import javafx.beans.binding.IntegerBinding;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
+import javafx.scene.Node;
+import minesweeper.model.CellModel;
 import minesweeper.model.FieldModel;
 import minesweeper.model.GameConstants;
 
@@ -26,6 +29,16 @@ public class Field extends GridPane {
                 add(cell, x, y);
             }
         }
+        
+        fieldModel.firstCellProperty().addListener(o -> {
+            if (!fieldModel.getFirstCell()) {
+                for (Node node : getChildren()) {
+                    if (node instanceof Cell) {
+                        ((Cell) node).addContent();
+                    }
+                }
+            }
+        });
         
         fieldModel.gameOverProperty().addListener(o -> {
             if (fieldModel.getWin()) {

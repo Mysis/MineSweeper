@@ -45,22 +45,9 @@ public class Settings {
         expert.setToggleGroup(defaultsGroup);
         RadioButton custom = new RadioButton("Custom");
         custom.setToggleGroup(defaultsGroup);
+        defaultsGroup.selectToggle(beginner);
+        gameConstants = new GameConstants(9, 9, 10);
         defaultGrids.getChildren().addAll(beginner, intermediate, expert, custom);
-        /*
-        switch (defaultOption) {
-            case 0:
-                defaultsGroup.selectToggle(beginner);
-                break;
-            case 1:
-                defaultsGroup.selectToggle(intermediate);
-                break;
-            case 2:
-                defaultsGroup.selectToggle(expert);
-                break;
-            default:
-                defaultsGroup.selectToggle(beginner);
-        }
-        */
         
         customGrid.setHgap(10);
         customGrid.setVgap(5);
@@ -134,7 +121,7 @@ public class Settings {
         return changed;
     }
     
-    public GameConstants getResult() {
+    public GameConstants getSettings() {
         changed = false;
         return gameConstants;
     }

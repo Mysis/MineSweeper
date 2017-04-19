@@ -5,12 +5,8 @@ import minesweeper.model.GameConstants;
 
 public final class Constants {
     
-    public static final int DEFAULT_ROWS = 9;
-    public static final int DEFAULT_COLUMNS = 9;
-    public static final int DEFAULT_MINES = 10;
-    
     public static final double GAME_BOUNDARY_SIZE = 20;
-    public static final double CELL_START_SIZE = 35;
+    public static final double CELL_START_SIZE = 25;
     
     public static Color CELL_COLOR = Color.GREY;
     public static Color CELL_REVEALED_COLOR = Color.LIGHTGRAY;

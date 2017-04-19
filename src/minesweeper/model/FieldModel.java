@@ -3,8 +3,10 @@ package minesweeper.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -13,6 +15,7 @@ public class FieldModel {
     private ObservableList<ObservableList<CellModel>> cells = FXCollections.observableArrayList();
     private ReadOnlyBooleanWrapper gameOver = new ReadOnlyBooleanWrapper(false);
     private ReadOnlyBooleanWrapper win = new ReadOnlyBooleanWrapper(false);
+    private ReadOnlyBooleanWrapper firstCell = new ReadOnlyBooleanWrapper(true);
 
     public FieldModel(GameConstants gameConstants) {
 
@@ -32,28 +35,14 @@ public class FieldModel {
             for (int j = 0; j < gameConstants.rows; j++) {
                 CellModel newCell = new CellModel(minesBag.get(0), gameOver.getReadOnlyProperty());
                 minesBag.remove(0);
-                if (newCell.getMine()) {
-                    newCell.stateProperty().addListener((o) -> {
-                        if (newCell.getState() == CellModel.State.REVEALED) {
-                            lose();
-                        }
-                    });
-                } else {
-                    newCell.stateProperty().addListener((o) -> {
-                        if (newCell.getState() == CellModel.State.REVEALED) {
-                            if (newCell.getSurrounding() == 0) {
-                                revealCells(newCell);
-                            }
-                            if (checkWin()) {
-                                win();
-                            }
-                        }
-                    });
-                }
+                addStateListener(newCell);
                 cells.get(i).add(newCell);
             }
+            calculateSurroundingCells();
         }
-
+    }
+    
+    private void calculateSurroundingCells() {
         for (List<CellModel> column : cells) {
             for (CellModel cell : column) {
                 int surroundingMines = 0;
@@ -78,7 +67,7 @@ public class FieldModel {
         }
 
         if (x == -2 || y == -2) {
-            throw new IllegalArgumentException("cell does not exist in this grid");
+            throw new IllegalArgumentException("Cell does not exist in this grid.");
         }
 
         List<CellModel> surrounding = new ArrayList<>();
@@ -87,13 +76,37 @@ public class FieldModel {
                 if (!(i == 0 && j == 0)) {
                     try {
                         surrounding.add(cells.get(x + i).get(y + j));
-                    } catch (IndexOutOfBoundsException e) {
-                    }
+                    } catch (IndexOutOfBoundsException e) {}
                 }
             }
         }
 
         return surrounding;
+    }
+    
+    private void addStateListener(CellModel cell) {
+        cell.stateProperty().addListener(o -> {
+            if (cell.getState() == CellModel.State.REVEALED) {
+                if (cell.getMine()) {
+                    if (firstCell.get()) {
+                        relocateMine(cell);
+                        if (cell.getSurrounding() == 0) {
+                            revealCells(cell);
+                        }
+                    } else {
+                        lose();
+                    }
+                } else {
+                    if (cell.getSurrounding() == 0) {
+                        revealCells(cell);
+                    }
+                    if (checkWin()) {
+                        win();
+                    }
+                }
+                firstCell.set(false);
+            }
+        });
     }
 
     public void revealCells(CellModel cell) {
@@ -105,6 +118,29 @@ public class FieldModel {
                 }
             }
         }
+    }
+    
+    private void relocateMine(CellModel cell) {
+        if (cell.getMine() == false) {
+            throw new IllegalArgumentException("This cell does not contain a mine.");
+        }
+        
+        List<CellModel> possibleCells = new ArrayList<>();
+        for (List<CellModel> column : cells) {
+            possibleCells.addAll(column);
+        }
+        Collections.shuffle(possibleCells);
+        boolean done = false;
+        while(!done) {
+            if (!possibleCells.get(0).getMine()) {
+                possibleCells.get(0).setMine(true);
+                done = true;
+            } else {
+                possibleCells.remove(0);
+            }
+        }
+        cell.setMine(false);
+        calculateSurroundingCells();
     }
 
     public boolean checkWin() {
@@ -146,6 +182,13 @@ public class FieldModel {
 
     public ObservableList<ObservableList<CellModel>> cells() {
         return cells;
+    }
+    
+    public ReadOnlyBooleanProperty firstCellProperty() {
+        return firstCell.getReadOnlyProperty();
+    }
+    public boolean getFirstCell() {
+        return firstCell.get();
     }
 
     public ReadOnlyBooleanProperty gameOverProperty() {

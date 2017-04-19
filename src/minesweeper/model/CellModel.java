@@ -50,11 +50,9 @@ public class CellModel {
     public IntegerProperty surroundingProperty() {
         return surrounding;
     }
-
     public void setSurrounding(int val) {
         surrounding.set(val);
     }
-
     public int getSurrounding() {
         return surrounding.get();
     }
@@ -62,11 +60,9 @@ public class CellModel {
     public ObjectProperty<State> stateProperty() {
         return state;
     }
-
     public void setState(State newState) {
         state.set(newState);
     }
-
     public State getState() {
         return state.get();
     }
@@ -74,11 +70,9 @@ public class CellModel {
     public BooleanProperty mineProperty() {
         return mine;
     }
-
     public void setMine(boolean isMine) {
         mine.set(isMine);
     }
-
     public boolean getMine() {
         return mine.get();
     }
