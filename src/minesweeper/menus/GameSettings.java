@@ -1,6 +1,7 @@
 package minesweeper.menus;
 
 import javafx.beans.binding.Bindings;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -9,6 +10,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -18,13 +20,15 @@ import javafx.stage.Stage;
 import javafx.util.converter.IntegerStringConverter;
 import minesweeper.model.GameConstants;
 
-public class Settings {
+public class GameSettings {
     
     boolean changed = false;
     GameConstants gameConstants;
     Stage stage;
     
-    public Settings(Stage ownerStage) {
+    public GameSettings(Stage ownerStage) {
+        
+        gameConstants = new GameConstants(9, 9, 10);
         
         VBox root = new VBox(25);
         HBox grids = new HBox(55);
@@ -46,7 +50,6 @@ public class Settings {
         RadioButton custom = new RadioButton("Custom");
         custom.setToggleGroup(defaultsGroup);
         defaultsGroup.selectToggle(beginner);
-        gameConstants = new GameConstants(9, 9, 10);
         defaultGrids.getChildren().addAll(beginner, intermediate, expert, custom);
         
         customGrid.setHgap(10);
@@ -57,15 +60,17 @@ public class Settings {
         
         TextField rows = new TextField();
         rows.setPrefColumnCount(3);
-        rows.setTextFormatter(new TextFormatter<>(new IntegerStringConverter()));
         customGrid.add(rows, 1, 0);
         TextField columns = new TextField();
         columns.setPrefColumnCount(3);
-        columns.setTextFormatter(new TextFormatter<>(new IntegerStringConverter()));
         customGrid.add(columns, 1, 1);
         TextField mines = new TextField();
         mines.setPrefColumnCount(3);
-        mines.setTextFormatter(new TextFormatter<Integer>(new IntegerStringConverter()));
+        
+        rows.addEventFilter(KeyEvent.KEY_TYPED, letterFilter(3));
+        columns.addEventFilter(KeyEvent.KEY_TYPED, letterFilter(3));
+        mines.addEventFilter(KeyEvent.KEY_TYPED, letterFilter(3));
+        
         customGrid.add(mines, 1, 2);
         
         customGrid.disableProperty().bind(Bindings.when(defaultsGroup.selectedToggleProperty().isEqualTo(custom)).then(false).otherwise(true));
@@ -111,6 +116,24 @@ public class Settings {
         stage.initOwner(ownerStage);
         stage.setResizable(false);
         stage.setTitle("Minesweeper Settings");
+    }
+    
+    private EventHandler<KeyEvent> letterFilter(final Integer maxLength) {
+        return e -> {
+            TextField txt_TextField = (TextField) e.getSource();                
+            if (txt_TextField.getText().length() >= maxLength) {                    
+                e.consume();
+            }
+            if (e.getCharacter().matches("[0-9.]")){ 
+                if (txt_TextField.getText().contains(".") && e.getCharacter().matches("[.]")){
+                    e.consume();
+                }else if (txt_TextField.getText().length() == 0 && e.getCharacter().matches("[.]")){
+                    e.consume(); 
+                }
+            } else {
+                e.consume();
+            }
+        };
     }
     
     public void showWindow() {

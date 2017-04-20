@@ -14,7 +14,6 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import minesweeper.model.CellModel;
 import minesweeper.model.CellModel.State;
-import minesweeper.Constants;
 
 public class Cell extends StackPane {
 
@@ -23,23 +22,25 @@ public class Cell extends StackPane {
     Rectangle shape;
     Polygon flag;
     IntegerBinding size;
+    AppearanceConstants appearanceConstants;
 
-    public Cell(IntegerBinding size, CellModel model) {
+    public Cell(IntegerBinding size, CellModel model, AppearanceConstants appearanceConstants) {
 
         this.size = size;
         cellModel = model;
+        this.appearanceConstants = appearanceConstants;
 
         shape = new Rectangle();
         shape.widthProperty().bind(size);
         shape.heightProperty().bind(size);
-        shape.fillProperty().bind(Bindings.when(model.stateProperty().isEqualTo(State.REVEALED)).then(Constants.CELL_REVEALED_COLOR).otherwise(Constants.CELL_COLOR));
+        shape.fillProperty().bind(Bindings.when(model.stateProperty().isEqualTo(State.REVEALED)).then(appearanceConstants.cellRevealedColorProperty()).otherwise(appearanceConstants.cellColorProperty()));
         getChildren().add(shape);
         
         flag = new Polygon(
                 0, 0, 
                 0.5, 0.25, 
                 0, 0.5);
-        flag.setFill(Constants.FLAG_COLOR);
+        flag.fillProperty().bind(appearanceConstants.flagColorProperty());
         setAlignment(flag, Pos.CENTER);
         getChildren().add(flag);
         
@@ -68,7 +69,7 @@ public class Cell extends StackPane {
             }
         } else {
             Ellipse mine = new Ellipse(.25, .25);
-            mine.setFill(Constants.MINE_COLOR);
+            mine.fillProperty().bind(appearanceConstants.mineColorProperty());
             setAlignment(mine, Pos.CENTER);
             getChildren().add(mine);
             mine.scaleXProperty().bind(size);

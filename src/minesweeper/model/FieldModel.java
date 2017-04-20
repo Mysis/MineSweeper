@@ -3,10 +3,8 @@ package minesweeper.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

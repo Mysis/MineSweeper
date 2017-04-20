@@ -11,20 +11,21 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.VBox;
 import javafx.scene.Scene;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import minesweeper.menus.AppearanceSettings;
 import minesweeper.menus.GameMenus;
-import minesweeper.menus.Settings;
+import minesweeper.menus.GameSettings;
 import minesweeper.model.GameConstants;
+import minesweeper.view.AppearanceConstants;
 import minesweeper.view.GameContainer;
 
 public class MineSweeper extends Application {
     
     GameMenus menu;
-    Settings settings;
+    GameSettings gameSettings;
+    AppearanceSettings appearanceSettings;
     GameContainer gameContainer;
     VBox root;
     Scene mainScene;
@@ -35,23 +36,27 @@ public class MineSweeper extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
+        gameSettings = new GameSettings(primaryStage);
+        appearanceSettings = new AppearanceSettings();
+        
         root = new VBox();
         root.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
         menu = new GameMenus();
-        settings = new Settings(primaryStage);
-        gameContainer = new GameContainer(settings.getSettings());
+        gameContainer = new GameContainer(appearanceSettings.getSettings());
         root.getChildren().addAll(menu, gameContainer);
         
-        mainScene = new Scene(root, Constants.BACKGROUND_COLOR);
-        gameContainer.prefWidthProperty().bind(mainScene.widthProperty());
-        gameContainer.prefHeightProperty().bind(mainScene.heightProperty().subtract(menu.heightProperty()));
+        mainScene = new Scene(root);
+        mainScene.fillProperty().bind(appearanceSettings.getSettings().backgroundColorProperty());
         
         menu.newGameItem().setOnAction(e -> newGame());
         menu.settingsItem().setOnAction(e -> {
-            settings.showWindow();
-            if (settings.didSettingsChange()) {
-                newGame(settings.getSettings());
+            gameSettings.showWindow();
+            if (gameSettings.didSettingsChange()) {
+                newGame(gameSettings.getSettings());
             }
+        });
+        menu.changeAppearanceItem().setOnAction(e -> {
+            appearanceSettings.showWindow();
         });
         menu.exitItem().setOnAction(e -> primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST)));
         
@@ -70,9 +75,8 @@ public class MineSweeper extends Application {
         primaryStage.setTitle("Minesweeper");
         primaryStage.setScene(mainScene);
         primaryStage.show();
-        gameContainer.removeBackground();
-        primaryStage.setMinWidth(primaryStage.getWidth());
-        primaryStage.setMinHeight(primaryStage.getHeight());
+        
+        newGame(gameSettings.getSettings());
     }
     
     public void newGame() {
@@ -83,7 +87,7 @@ public class MineSweeper extends Application {
         primaryStage.setMinWidth(0);
         primaryStage.setMinHeight(0);
         gameContainer.newGame(constants);
-        double[] size = Constants.calculateFieldStartSize(constants);
+        double[] size = AppearanceConstants.calculateFieldStartSize(constants, appearanceSettings.getSettings());
         gameContainer.prefWidthProperty().unbind();
         gameContainer.prefHeightProperty().unbind();
         gameContainer.setPrefSize(size[0], size[1]);

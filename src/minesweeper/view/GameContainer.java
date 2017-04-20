@@ -1,37 +1,32 @@
 package minesweeper.view;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import minesweeper.Constants;
 import minesweeper.model.GameConstants;
 
 public class GameContainer extends StackPane {
     
     Field game;
-    Rectangle background;
     GameConstants gameConstants;
+    AppearanceConstants appearanceConstants;
 
-    public GameContainer(GameConstants constants) {
-        double[] gameDimensions = Constants.calculateFieldStartSize(constants);
-        background = new Rectangle(gameDimensions[0], gameDimensions[1]);
-        //background.setFill(Color.TRANSPARENT);
-        getChildren().add(background);
-        newGame(constants);
+    public GameContainer(AppearanceConstants appearanceConstants) {
+        this.appearanceConstants = appearanceConstants;
+        paddingProperty().bind(Bindings.createObjectBinding(() -> new Insets(appearanceConstants.gameBoundarySizeProperty().get()), appearanceConstants.gameBoundarySizeProperty()));
     }
     
     public IntegerBinding calculateSize() {
         IntegerBinding calculateSize = new IntegerBinding() {
             {
-                super.bind(prefWidthProperty(), prefHeightProperty());
+                super.bind(prefWidthProperty(), prefHeightProperty(), appearanceConstants.gameBoundarySizeProperty());
             }
             @Override
             protected int computeValue() {
-                int width = (int) ((prefWidthProperty().get() - gameConstants.columns - 2 * Constants.GAME_BOUNDARY_SIZE) / gameConstants.columns) - 1;
-                int height = (int) ((prefHeightProperty().get() - gameConstants.rows - 2 * Constants.GAME_BOUNDARY_SIZE) / gameConstants.rows) - 1;
+                int width = (int) ((prefWidthProperty().get() - gameConstants.columns - 2 * appearanceConstants.gameBoundarySizeProperty().get()) / gameConstants.columns) - 1;
+                int height = (int) ((prefHeightProperty().get() - gameConstants.rows - 2 * appearanceConstants.gameBoundarySizeProperty().get()) / gameConstants.rows) - 1;
                 if (width > height) {
                     return height;
                 } else {
@@ -47,11 +42,10 @@ public class GameContainer extends StackPane {
             getChildren().remove(game);
         }
         
-        game = new Field(gameConstants, calculateSize());
+        game = new Field(gameConstants, appearanceConstants, calculateSize());
         
         getChildren().add(game);
         game.setAlignment(Pos.CENTER);
-        setMargin(game, new Insets(Constants.GAME_BOUNDARY_SIZE));
     }
     
     public void newGame(GameConstants constants) {
@@ -60,16 +54,10 @@ public class GameContainer extends StackPane {
         }
         
         gameConstants = constants;
-        game = new Field(gameConstants, calculateSize());
+        game = new Field(gameConstants, appearanceConstants, calculateSize());
         
         getChildren().add(game);
         game.setAlignment(Pos.CENTER);
-        setMargin(game, new Insets(Constants.GAME_BOUNDARY_SIZE));
-    }
-    
-    public void removeBackground() {
-        getChildren().remove(background);
-        background = null;
     }
     
     public Field game() {
