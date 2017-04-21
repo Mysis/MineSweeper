@@ -109,7 +109,7 @@ public class FieldModel {
 
     public void revealCells(CellModel cell) {
         for (CellModel surrounding : surroundingCells(cell)) {
-            if (surrounding.getState() != CellModel.State.REVEALED) {
+            if (surrounding.getState() == CellModel.State.HIDDEN) {
                 surrounding.reveal();
                 if (surrounding.getSurrounding() == 0) {
                     revealCells(surrounding);
