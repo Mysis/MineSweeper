@@ -28,6 +28,27 @@ public class AppearanceConstants {
         this.backgroundColor = new SimpleObjectProperty<>(backgroundColor);
     }
     
+    public AppearanceConstants(AppearanceConstants constants) {
+        gameBoundarySize = new SimpleDoubleProperty();
+        cellStartSize = new SimpleDoubleProperty();
+        cellColor = new SimpleObjectProperty<>();
+        cellRevealedColor = new SimpleObjectProperty<>();
+        mineColor = new SimpleObjectProperty<>();
+        flagColor = new SimpleObjectProperty<>();
+        backgroundColor = new SimpleObjectProperty<>();
+        setConstants(constants);
+    }
+    
+    public void setConstants(AppearanceConstants constants) {
+        setGameBoundarySize(constants.getGameBoundarySize());
+        setCellStartSize(constants.getCellStartSize());
+        setCellColor(constants.getCellColor());
+        setCellRevealedColor(constants.getCellRevealedColor());
+        setMineColor(constants.getMineColor());
+        setFlagColor(constants.getFlagColor());
+        setBackgroundColor(constants.getBackgroundColor());
+    }
+    
     public static double[] calculateFieldStartSize(GameConstants gameConstants, AppearanceConstants appearanceConstants) {
         double[] size = new double[2];
         size[0] = gameConstants.columns * appearanceConstants.getCellStartSize() + gameConstants.columns + appearanceConstants.getGameBoundarySize() * 2;
@@ -36,7 +57,7 @@ public class AppearanceConstants {
     }
     
     public static AppearanceConstants defaultConstants() {
-        return new AppearanceConstants(20, 25, Color.GREY, Color.LIGHTGREY, Color.BLACK, Color.RED, Color.BROWN);
+        return new AppearanceConstants(20, 25, Color.GREY, Color.LIGHTGREY, Color.BLACK, Color.RED, Color.DARKRED);
     }
     
     public DoubleProperty gameBoundarySizeProperty() {

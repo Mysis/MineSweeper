@@ -69,6 +69,8 @@ public class MineSweeper extends Application {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == ButtonType.CANCEL){
                 event.consume();
+            } else {
+                System.exit(0);
             }
         });
         

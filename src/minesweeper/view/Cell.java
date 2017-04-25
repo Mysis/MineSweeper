@@ -65,6 +65,29 @@ public class Cell extends StackPane {
         });
     }
     
+    private Color getSurroundingColor(int surrounding) {
+        switch (surrounding) {
+            case 1:
+                return Color.BLUE;
+            case 2:
+                return Color.GREEN;
+            case 3:
+                return Color.RED;
+            case 4:
+                return Color.PURPLE;
+            case 5:
+                return Color.MAROON;
+            case 6:
+                return Color.MEDIUMTURQUOISE;
+            case 7:
+                return Color.BLACK;
+            case 8:
+                return Color.GREY;
+            default :
+                throw new IllegalArgumentException("Valid surrounding numbers are 1 - 8.");
+        }
+    }
+    
     public void addContent() {
         if (!cellModel.getMine()) {
             if (cellModel.getSurrounding() > 0) {
@@ -130,28 +153,5 @@ public class Cell extends StackPane {
         save.add(shape);
         save.add(flag);
         getChildren().setAll(save);
-    }
-    
-    private Color getSurroundingColor(int surrounding) {
-        switch (surrounding) {
-            case 1:
-                return Color.BLUE;
-            case 2:
-                return Color.GREEN;
-            case 3:
-                return Color.RED;
-            case 4:
-                return Color.PURPLE;
-            case 5:
-                return Color.MAROON;
-            case 6:
-                return Color.TURQUOISE;
-            case 7:
-                return Color.BLACK;
-            case 8:
-                return Color.GREY;
-            default :
-                throw new IllegalArgumentException("Valid surrounding numbers are 1 - 8.");
-        }
     }
 }
