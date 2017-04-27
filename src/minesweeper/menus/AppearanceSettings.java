@@ -36,8 +36,9 @@ public class AppearanceSettings {
         colors.add(new Label("Cell color:"), 0, 0);
         colors.add(new Label("Cell revealed color:"), 0, 1);
         colors.add(new Label("Mine color:"), 0, 2);
-        colors.add(new Label("Flag color:"), 0, 3);
-        colors.add(new Label("Background color:"), 0, 4);
+        colors.add(new Label("Flag color:"), 2, 0);
+        colors.add(new Label("Background color:"), 2, 1);
+        colors.add(new Label("Status bar color:"), 2, 2);
 
         ColorPicker cell = new ColorPicker(appearanceConstants.getCellColor());
         appearanceConstants.cellColorProperty().bindBidirectional(cell.valueProperty());
@@ -50,21 +51,27 @@ public class AppearanceSettings {
         colors.add(mine, 1, 2);
         ColorPicker flag = new ColorPicker(appearanceConstants.getFlagColor());
         appearanceConstants.flagColorProperty().bindBidirectional(flag.valueProperty());
-        colors.add(flag, 1, 3);
+        colors.add(flag, 3, 0);
         ColorPicker background = new ColorPicker(appearanceConstants.getBackgroundColor());
         appearanceConstants.backgroundColorProperty().bindBidirectional(background.valueProperty());
-        colors.add(background, 1, 4);
+        colors.add(background, 3, 1);
+        ColorPicker statusBar = new ColorPicker(appearanceConstants.getStatusBarColor());
+        appearanceConstants.statusBarColorProperty().bindBidirectional(statusBar.valueProperty());
+        colors.add(statusBar, 3, 2);
         
         Button ok = new Button("OK");
-        ok.setPrefWidth(100);
+        ok.setPrefWidth(125);
         ok.setDefaultButton(true);
+        Button defaults = new Button("Restore Defaults");
+        defaults.setPrefWidth(125);
         Button cancel = new Button("Cancel");
-        cancel.setPrefWidth(100);
+        cancel.setPrefWidth(125);
         cancel.setCancelButton(true);
-        buttons.getChildren().addAll(ok, cancel);
+        buttons.getChildren().addAll(ok, defaults, cancel);
         buttons.setAlignment(Pos.BOTTOM_RIGHT);
         
         ok.setOnAction(e -> stage.close());
+        defaults.setOnAction(e -> appearanceConstants.setConstants(AppearanceConstants.defaultConstants()));
         cancel.setOnAction(e -> {
             appearanceConstants.setConstants(previous);
             stage.close();
@@ -84,7 +91,7 @@ public class AppearanceSettings {
         stage.showAndWait();
     }
     
-    public AppearanceConstants getSettings() {
+    public AppearanceConstants getConstants() {
         return appearanceConstants;
     }
 }

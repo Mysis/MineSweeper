@@ -146,4 +146,8 @@ public class GameSettings {
         changed = false;
         return gameConstants;
     }
+    
+    public GameConstants getConstants() {
+        return gameConstants;
+    }
 }

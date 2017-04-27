@@ -40,24 +40,26 @@ public class Field extends GridPane {
             }
         });
         
-        fieldModel.gameOverProperty().addListener(o -> {
-            if (fieldModel.getWin()) {
-                Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setTitle("Game Won");
-                alert.setHeaderText(null);
-                alert.setContentText("You win!");
-                alert.showAndWait();
-            } else {
-                Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setTitle("Game Lost");
-                alert.setHeaderText(null);
-                alert.setContentText("You lose.");
-                alert.showAndWait();
+        fieldModel.gameOverProperty().addListener((observable, oldVal, newVal) -> {
+            if (newVal) {
+                if (fieldModel.getWin()) {
+                    Alert alert = new Alert(AlertType.INFORMATION);
+                    alert.setTitle("Game Won");
+                    alert.setHeaderText(null);
+                    alert.setContentText("You win!");
+                    alert.show();
+                } else {
+                    Alert alert = new Alert(AlertType.INFORMATION);
+                    alert.setTitle("Game Lost");
+                    alert.setHeaderText(null);
+                    alert.setContentText("You lose.");
+                    alert.show();
+                }
             }
         });
     }
     
-    public FieldModel model() {
+    public FieldModel getModel() {
         return fieldModel;
     }
 }

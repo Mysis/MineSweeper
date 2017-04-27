@@ -49,18 +49,14 @@ public class GameContainer extends StackPane {
     }
     
     public void newGame(GameConstants constants) {
-        if (game != null) {
-            getChildren().remove(game);
-        }
-        
         gameConstants = constants;
-        game = new Field(gameConstants, appearanceConstants, calculateSize());
-        
-        getChildren().add(game);
-        game.setAlignment(Pos.CENTER);
+        newGame();
     }
     
-    public Field game() {
+    public Field getGame() {
         return game;
+    }
+    public GameConstants getGameConstants() {
+        return gameConstants;
     }
 }

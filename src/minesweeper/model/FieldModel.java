@@ -3,10 +3,12 @@ package minesweeper.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import minesweeper.model.CellModel.State;
 
 public class FieldModel {
 
@@ -14,8 +16,11 @@ public class FieldModel {
     private ReadOnlyBooleanWrapper gameOver = new ReadOnlyBooleanWrapper(false);
     private ReadOnlyBooleanWrapper win = new ReadOnlyBooleanWrapper(false);
     private ReadOnlyBooleanWrapper firstCell = new ReadOnlyBooleanWrapper(true);
+    
+    GameConstants gameConstants;
 
     public FieldModel(GameConstants gameConstants) {
+        this.gameConstants = gameConstants;
 
         List<Boolean> minesBag = new ArrayList<>();
         int addMines = gameConstants.mines;
@@ -84,7 +89,7 @@ public class FieldModel {
     
     private void addStateListener(CellModel cell) {
         cell.stateProperty().addListener(o -> {
-            if (cell.getState() == CellModel.State.REVEALED) {
+            if (cell.getState() == State.REVEALED) {
                 if (cell.getMine()) {
                     if (firstCell.get()) {
                         relocateMine(cell);
@@ -109,7 +114,7 @@ public class FieldModel {
 
     public void revealCells(CellModel cell) {
         for (CellModel surrounding : surroundingCells(cell)) {
-            if (surrounding.getState() == CellModel.State.HIDDEN) {
+            if (surrounding.getState() == State.HIDDEN) {
                 surrounding.reveal();
                 if (surrounding.getSurrounding() == 0) {
                     revealCells(surrounding);
@@ -147,7 +152,7 @@ public class FieldModel {
         }
         for (ObservableList<CellModel> column : cells()) {
             for (CellModel cell : column) {
-                if (!cell.getMine() && cell.getState() == CellModel.State.HIDDEN) {
+                if (!cell.getMine() && cell.getState() == State.HIDDEN) {
                     return false;
                 }
             }
@@ -159,7 +164,7 @@ public class FieldModel {
         for (ObservableList<CellModel> column : cells()) {
             for (CellModel cell : column) {
                 if (cell.getMine()) {
-                    cell.setState(CellModel.State.FLAGGED);
+                    cell.setState(State.FLAGGED);
                 }
             }
         }
@@ -170,7 +175,7 @@ public class FieldModel {
     public void lose() {
         for (ObservableList<CellModel> column : cells()) {
             for (CellModel cell : column) {
-                if (cell.getMine() && cell.getState() != CellModel.State.REVEALED) {
+                if (cell.getMine() && cell.getState() != State.REVEALED) {
                     cell.reveal();
                 }
             }
@@ -180,6 +185,34 @@ public class FieldModel {
 
     public ObservableList<ObservableList<CellModel>> cells() {
         return cells;
+    }
+    
+    public IntegerBinding flagsPlacedProperty() {
+        return new IntegerBinding() {
+            List<CellModel> allCells = new ArrayList<>();
+            {
+                for (ObservableList<CellModel> column : cells()) {
+                    for (CellModel cell : column) {
+                        allCells.add(cell);
+                        super.bind(cell.stateProperty());
+                    }
+                }
+            }
+            @Override
+            protected int computeValue() {
+                int value = 0;
+                for (CellModel cell : allCells) {
+                    if (cell.stateProperty().get() == State.FLAGGED) {
+                        value += 1;
+                    }
+                }
+                return value;
+            }
+        };
+    }
+    
+    public GameConstants getGameConstants() {
+        return gameConstants;
     }
     
     public ReadOnlyBooleanProperty firstCellProperty() {

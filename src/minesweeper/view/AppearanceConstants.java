@@ -17,8 +17,9 @@ public class AppearanceConstants {
     private final ObjectProperty<Color> mineColor;
     private final ObjectProperty<Color> flagColor;
     private final ObjectProperty<Color> backgroundColor;
+    private final ObjectProperty<Color> statusBarColor;
     
-    public AppearanceConstants(double gameBoundarySize, double cellStartSize, Color cellColor, Color cellRevealedColor, Color mineColor, Color flagColor, Color backgroundColor) {
+    public AppearanceConstants(double gameBoundarySize, double cellStartSize, Color cellColor, Color cellRevealedColor, Color mineColor, Color flagColor, Color backgroundColor, Color statusBarColor) {
         this.gameBoundarySize = new SimpleDoubleProperty(gameBoundarySize);
         this.cellStartSize = new SimpleDoubleProperty(cellStartSize);
         this.cellColor = new SimpleObjectProperty<>(cellColor);
@@ -26,6 +27,7 @@ public class AppearanceConstants {
         this.mineColor = new SimpleObjectProperty<>(mineColor);
         this.flagColor = new SimpleObjectProperty<>(flagColor);
         this.backgroundColor = new SimpleObjectProperty<>(backgroundColor);
+        this.statusBarColor = new SimpleObjectProperty<>(statusBarColor);
     }
     
     public AppearanceConstants(AppearanceConstants constants) {
@@ -36,6 +38,7 @@ public class AppearanceConstants {
         mineColor = new SimpleObjectProperty<>();
         flagColor = new SimpleObjectProperty<>();
         backgroundColor = new SimpleObjectProperty<>();
+        statusBarColor = new SimpleObjectProperty<>();
         setConstants(constants);
     }
     
@@ -47,6 +50,7 @@ public class AppearanceConstants {
         setMineColor(constants.getMineColor());
         setFlagColor(constants.getFlagColor());
         setBackgroundColor(constants.getBackgroundColor());
+        setStatusBarColor(constants.getStatusBarColor());
     }
     
     public static double[] calculateFieldStartSize(GameConstants gameConstants, AppearanceConstants appearanceConstants) {
@@ -57,7 +61,7 @@ public class AppearanceConstants {
     }
     
     public static AppearanceConstants defaultConstants() {
-        return new AppearanceConstants(20, 25, Color.GREY, Color.LIGHTGREY, Color.BLACK, Color.RED, Color.DARKRED);
+        return new AppearanceConstants(20, 25, Color.GREY, Color.LIGHTGREY, Color.BLACK, Color.RED, Color.DARKRED, Color.WHITE);
     }
     
     public DoubleProperty gameBoundarySizeProperty() {
@@ -128,5 +132,15 @@ public class AppearanceConstants {
     }
     public void setBackgroundColor(Color val) {
         backgroundColor.set(val);
+    }
+    
+    public ObjectProperty<Color> statusBarColorProperty() {
+        return statusBarColor;
+    }
+    public Color getStatusBarColor() {
+        return statusBarColor.get();
+    }
+    public void setStatusBarColor(Color val) {
+        statusBarColor.set(val);
     }
 }
