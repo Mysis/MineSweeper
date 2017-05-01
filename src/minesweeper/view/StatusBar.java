@@ -31,6 +31,31 @@ public class StatusBar extends BorderPane {
     
     Label flagsLeftLabel;
     
+    private class StopWatch extends AnimationTimer {
+        private boolean start = false;
+        private long startTime;
+        private ReadOnlyLongWrapper timeMillis = new ReadOnlyLongWrapper(0);
+        @Override
+        public void start() {
+            start = true;
+            super.start();
+        }
+        @Override
+        public void handle(long timestamp) {
+            if (start) {
+                startTime = timestamp;
+                start = false;
+            }
+            timeMillis.set((timestamp - startTime) / 1000000);
+        }
+        public void resetTime() {
+            timeMillis.set(0);
+        }
+        public ReadOnlyLongProperty timeMillisProperty() {
+            return timeMillis.getReadOnlyProperty();
+        }
+    }
+    
     public StatusBar(AppearanceConstants appearanceConstants) {
         
         timer = new StopWatch();
@@ -51,14 +76,7 @@ public class StatusBar extends BorderPane {
             }
             @Override
             protected String computeValue() {
-                Long time = timer.timeMillisProperty().get();
-                if (time >= 3600000) {
-                    return String.format("%1$tH:%1$tM:%1$tS.%1$tL", time);
-                } else if (time >= 60000) {
-                    return String.format("%1$tM:%1$tS.%1$tL", time);
-                } else {
-                    return String.format("%1$tS.%1$tL", time);
-                }
+                return convertTimeMillisToString(timer.timeMillisProperty().get());
             }
         };
         
@@ -105,31 +123,6 @@ public class StatusBar extends BorderPane {
         setPadding(new Insets(5, 20, 5, 20));
     }
     
-    private class StopWatch extends AnimationTimer {
-        private boolean start = false;
-        private long startTime;
-        private ReadOnlyLongWrapper timeMillis = new ReadOnlyLongWrapper(0);
-        @Override
-        public void start() {
-            start = true;
-            super.start();
-        }
-        @Override
-        public void handle(long timestamp) {
-            if (start) {
-                startTime = timestamp;
-                start = false;
-            }
-            timeMillis.set((timestamp - startTime) / 1000000);
-        }
-        public void resetTime() {
-            timeMillis.set(0);
-        }
-        public ReadOnlyLongProperty timeMillisProperty() {
-            return timeMillis.getReadOnlyProperty();
-        }
-    }
-    
     public void newGame(FieldModel model) {
         try {
             this.model.firstCellProperty().removeListener(timeStartListener);
@@ -139,18 +132,35 @@ public class StatusBar extends BorderPane {
         } catch (NullPointerException e)  {}
         this.model = model;
         timer.stop();
+        timer.resetTime();
         model.firstCellProperty().addListener(timeStartListener);
         model.gameOverProperty().addListener(gameOverListener);
         flagsLeftLabel.textProperty().bind(Bindings.concat(model.flagsPlacedProperty(), "/", model.getGameConstants().mines));
     }
+    
     public void setModel(FieldModel model) {
         this.model = model;
+    }
+    
+    public static String convertTimeMillisToString(long millis) {
+        if (millis >= 3600000) {
+            return String.format("%1$tH:%1$tM:%1$tS.%1$tL", millis);
+        } else if (millis >= 60000) {
+            return String.format("%1$tM:%1$tS.%1$tL", millis);
+        } else if (millis >= 1000) {
+            return String.format("%1$tS.%1$tL", millis);
+        } else {
+            return String.format("0.%1$tL", millis);
+        }
     }
     
     public ReadOnlyLongProperty timeProperty() {
         return timer.timeMillisProperty();
     }
-    public long getTime() {
+    public long getTimeMillis() {
         return timer.timeMillisProperty().get();
+    }
+    public String getTimeString() {
+        return convertTimeMillisToString(timer.timeMillisProperty().get());
     }
 }

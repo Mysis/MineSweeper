@@ -96,6 +96,9 @@ public class FieldModel {
                         if (cell.getSurrounding() == 0) {
                             revealCells(cell);
                         }
+                        if (checkWin()) {
+                            win();
+                        }
                     } else {
                         lose();
                     }
@@ -148,7 +151,7 @@ public class FieldModel {
 
     public boolean checkWin() {
         if (gameOver.get()) {
-            return false;
+            return win.get();
         }
         for (ObservableList<CellModel> column : cells()) {
             for (CellModel cell : column) {

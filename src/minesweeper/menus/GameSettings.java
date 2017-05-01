@@ -1,5 +1,6 @@
 package minesweeper.menus;
 
+import java.util.EnumMap;
 import javafx.beans.binding.Bindings;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -20,13 +21,28 @@ import minesweeper.model.GameConstants;
 
 public class GameSettings {
     
-    boolean changed = false;
-    GameConstants gameConstants;
+    Type currentType;
+    GameConstants previousConstants;
     Stage stage;
+    
+    EnumMap<Type, GameConstants> typeValues;
+    
+    public enum Type {
+        BEGINNER,
+        INTERMEDIATE,
+        EXPERT,
+        CUSTOM;
+    }
     
     public GameSettings(Stage ownerStage) {
         
-        gameConstants = new GameConstants(9, 9, 10);
+        typeValues = new EnumMap<>(Type.class);
+        typeValues.put(Type.BEGINNER, new GameConstants(9, 9, 10));
+        typeValues.put(Type.INTERMEDIATE, new GameConstants(16, 16, 40));
+        typeValues.put(Type.EXPERT, new GameConstants(16, 30, 99));
+        typeValues.put(Type.CUSTOM, null);
+        
+        currentType = Type.BEGINNER;
         
         VBox root = new VBox(25);
         HBox grids = new HBox(55);
@@ -89,17 +105,17 @@ public class GameSettings {
         
         ok.setOnAction(e -> {
             if (defaultsGroup.getSelectedToggle() == beginner) {
-                gameConstants = new GameConstants(9, 9, 10);
+                currentType = Type.BEGINNER;
             } else if (defaultsGroup.getSelectedToggle() == intermediate) {
-                gameConstants = new GameConstants(16, 16, 40);
+                currentType = Type.INTERMEDIATE;
             } else if (defaultsGroup.getSelectedToggle() == expert) {
-                gameConstants = new GameConstants(16, 30, 99);
+                currentType = Type.EXPERT;
             } else if (defaultsGroup.getSelectedToggle() == custom) {
-                gameConstants = new GameConstants(Integer.parseInt(rows.getText()), Integer.parseInt(columns.getText()), Integer.parseInt(mines.getText()));
+                currentType = Type.CUSTOM;
+                typeValues.put(Type.CUSTOM, new GameConstants(Integer.parseInt(rows.getText()), Integer.parseInt(columns.getText()), Integer.parseInt(mines.getText())));
             }
             Stage stage = (Stage) cancel.getScene().getWindow();
             stage.close();
-            changed = true;
         });
         cancel.setOnAction(e -> {
             Stage stage = (Stage) cancel.getScene().getWindow();
@@ -138,16 +154,10 @@ public class GameSettings {
         stage.showAndWait();
     }
     
-    public boolean didSettingsChange() {
-        return changed;
+    public Type getType() {
+        return currentType;
     }
-    
     public GameConstants getSettings() {
-        changed = false;
-        return gameConstants;
-    }
-    
-    public GameConstants getConstants() {
-        return gameConstants;
+        return typeValues.get(currentType);
     }
 }
