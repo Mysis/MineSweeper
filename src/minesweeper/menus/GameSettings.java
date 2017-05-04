@@ -218,9 +218,11 @@ public class GameSettings implements Serializable {
             gameTypeGroup.selectToggle(typeToButton(currentType));
             GameConstants oldCustom = oldSettings.typeValues.get(Type.CUSTOM);
             typeValues.put(Type.CUSTOM, oldCustom);
-            rows.setText(String.valueOf(oldCustom.rows));
-            columns.setText(String.valueOf(oldCustom.columns));
-            mines.setText(String.valueOf(oldCustom.mines));
+            if (oldCustom != null) {
+                rows.setText(String.valueOf(oldCustom.rows));
+                columns.setText(String.valueOf(oldCustom.columns));
+                mines.setText(String.valueOf(oldCustom.mines));
+            }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

@@ -127,6 +127,7 @@ public class FieldModel {
     }
     
     private void relocateMine(CellModel cell) {
+        Long startTime = System.nanoTime();
         if (cell.getMine() == false) {
             throw new IllegalArgumentException("This cell does not contain a mine.");
         }
@@ -137,16 +138,27 @@ public class FieldModel {
         }
         Collections.shuffle(possibleCells);
         boolean done = false;
+        CellModel newMine;
         while(!done) {
             if (!possibleCells.get(0).getMine()) {
-                possibleCells.get(0).setMine(true);
+                newMine = possibleCells.get(0);
+                newMine.setMine(true);
+                cell.setMine(false);
+                List<CellModel> cellsToRecalculate = surroundingCells(newMine);
+                for (CellModel cellToRecalculate : cellsToRecalculate) {
+                    int surrounding = 0;
+                    for (CellModel cellSurroundingCellToRecalculate : surroundingCells(cellToRecalculate)) {
+                        if (cellSurroundingCellToRecalculate.getMine()) {
+                            surrounding++;
+                        }
+                    }
+                    cellToRecalculate.setSurrounding(surrounding);
+                }
                 done = true;
             } else {
                 possibleCells.remove(0);
             }
         }
-        cell.setMine(false);
-        calculateSurroundingCells();
     }
 
     public boolean checkWin() {
