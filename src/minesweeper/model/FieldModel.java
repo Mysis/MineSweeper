@@ -96,9 +96,6 @@ public class FieldModel {
                         if (cell.getSurrounding() == 0) {
                             revealCells(cell);
                         }
-                        if (checkWin()) {
-                            win();
-                        }
                     } else {
                         lose();
                     }
@@ -106,11 +103,11 @@ public class FieldModel {
                     if (cell.getSurrounding() == 0) {
                         revealCells(cell);
                     }
-                    if (checkWin()) {
-                        win();
-                    }
                 }
                 firstCell.set(false);
+                if (checkWin()) {
+                    win();
+                }
             }
         });
     }
@@ -127,7 +124,6 @@ public class FieldModel {
     }
     
     private void relocateMine(CellModel cell) {
-        Long startTime = System.nanoTime();
         if (cell.getMine() == false) {
             throw new IllegalArgumentException("This cell does not contain a mine.");
         }
@@ -145,6 +141,16 @@ public class FieldModel {
                 newMine.setMine(true);
                 cell.setMine(false);
                 List<CellModel> cellsToRecalculate = surroundingCells(newMine);
+                for (CellModel cellToRecalculate : cellsToRecalculate) {
+                    int surrounding = 0;
+                    for (CellModel cellSurroundingCellToRecalculate : surroundingCells(cellToRecalculate)) {
+                        if (cellSurroundingCellToRecalculate.getMine()) {
+                            surrounding++;
+                        }
+                    }
+                    cellToRecalculate.setSurrounding(surrounding);
+                }
+                cellsToRecalculate = surroundingCells(cell);
                 for (CellModel cellToRecalculate : cellsToRecalculate) {
                     int surrounding = 0;
                     for (CellModel cellSurroundingCellToRecalculate : surroundingCells(cellToRecalculate)) {

@@ -59,7 +59,7 @@ public class MineSweeper extends Application implements Serializable {
         mainScene.fillProperty().bind(appearanceSettings.getConstants().backgroundColorProperty());
 
         menu.newGameItem().setOnAction(e -> newGame());
-        menu.settingsItem().setOnAction(e -> {
+        menu.optionsItem().setOnAction(e -> {
             gameSettings.showWindow();
             if (!gameContainer.getGameConstants().equals(gameSettings.getSettings())) {
                 newGame(gameSettings.getSettings());
@@ -71,16 +71,16 @@ public class MineSweeper extends Application implements Serializable {
         menu.exitItem().setOnAction(e -> primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST)));
 
         primaryStage.setOnCloseRequest(event -> {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Exit Minesweeper");
-            alert.setHeaderText(null);
-            alert.setContentText("Are you sure you want to exit?");
+            if (!gameContainer.getGame().getModel().getGameOver() && !gameContainer.getGame().getModel().getFirstCell()) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Exit Minesweeper");
+                alert.setHeaderText(null);
+                alert.setContentText("Are you sure you want to exit?");
 
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == ButtonType.CANCEL) {
-                event.consume();
-            } else {
-                System.exit(0);
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.CANCEL) {
+                    event.consume();
+                }
             }
         });
 
@@ -94,7 +94,7 @@ public class MineSweeper extends Application implements Serializable {
     public void newGame() {
         gameContainer.newGame();
         statusBar.newGame(gameContainer.getGame().getModel());
-        
+
         gameContainer.getGame().getModel().gameOverProperty().addListener((observable, oldVal, newVal) -> {
             if (newVal) {
                 gameOver(gameContainer.getGame().getModel().getWin(), statusBar.getTimeMillis(), gameSettings.getType());
@@ -105,7 +105,7 @@ public class MineSweeper extends Application implements Serializable {
     public void newGame(GameConstants constants) {
         gameContainer.newGame(constants);
         statusBar.newGame(gameContainer.getGame().getModel());
-        
+
         gameContainer.getGame().getModel().gameOverProperty().addListener((observable, oldVal, newVal) -> {
             if (newVal) {
                 gameOver(gameContainer.getGame().getModel().getWin(), statusBar.getTimeMillis(), gameSettings.getType());
@@ -144,7 +144,7 @@ public class MineSweeper extends Application implements Serializable {
         primaryStage.setMinWidth(primaryStage.getWidth());
         primaryStage.setMinHeight(primaryStage.getHeight());
     }
-    
+
     public void gameOver(boolean won, Long timeMillis, GameSettings.Type gameMode) {
         boolean newScore = false;
         File highScoresFile = null;
@@ -160,7 +160,7 @@ public class MineSweeper extends Application implements Serializable {
                 newScore = highScores.addScoreIfPossible(gameMode, timeMillis);
                 MineSweeperFiles.writeSerializedObject(highScores, highScoresFile);
             }
-        } catch(ClassNotFoundException | IOException e) {
+        } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
@@ -178,19 +178,21 @@ public class MineSweeper extends Application implements Serializable {
             alert.showAndWait();
             return;
         }
-        
+
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         StringBuilder content = new StringBuilder("Time: " + StatusBar.convertTimeMillisToString(timeMillis));
-        if (newScore) {
-            content.append("\n\nYou made a new highscore!");
-        }
-        content.append("\n\nHigh Scores:");
-        ListIterator<Long> iterator = highScores.getScores(gameMode).listIterator();
-        while (iterator.hasNext()) {
-            content.append("\n").
-                    append((iterator.nextIndex() + 1)).
-                    append(": ").
-                    append(StatusBar.convertTimeMillisToString(iterator.next()));
+        if (gameMode != GameSettings.Type.CUSTOM) {
+            if (newScore) {
+                content.append("\n\nYou made a new highscore!");
+            }
+            content.append("\n\nHigh Scores:");
+            ListIterator<Long> iterator = highScores.getScores(gameMode).listIterator();
+            while (iterator.hasNext()) {
+                content.append("\n").
+                        append((iterator.nextIndex() + 1)).
+                        append(": ").
+                        append(StatusBar.convertTimeMillisToString(iterator.next()));
+            }
         }
         alert.setContentText(content.toString());
         if (won) {

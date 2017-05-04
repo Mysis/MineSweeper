@@ -2,6 +2,7 @@ package minesweeper.view;
 
 import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
@@ -37,6 +38,13 @@ public class Cell extends StackPane {
         this.fieldModel = fieldModel;
         this.cellModel = cellModel;
         this.appearanceValues = appearanceValues;
+        
+        InvalidationListener relocateCellListener = (o -> {
+            removeContent();
+            addContent();
+        });
+        cellModel.surroundingProperty().addListener(relocateCellListener);
+        cellModel.mineProperty().addListener(relocateCellListener);
 
         shape = new Rectangle();
         shape.widthProperty().bind(size);
@@ -78,7 +86,7 @@ public class Cell extends StackPane {
             case 5:
                 return Color.MAROON;
             case 6:
-                return Color.MEDIUMTURQUOISE;
+                return Color.STEELBLUE;
             case 7:
                 return Color.BLACK;
             case 8:

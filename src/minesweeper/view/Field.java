@@ -28,15 +28,11 @@ public class Field extends GridPane {
             }
         }
         
-        fieldModel.firstCellProperty().addListener(o -> {
-            if (!fieldModel.getFirstCell()) {
-                for (Node node : getChildren()) {
-                    if (node instanceof Cell) {
-                        ((Cell) node).addContent();
-                    }
-                }
+        for (Node node : getChildren()) {
+            if (node instanceof Cell) {
+                ((Cell) node).addContent();
             }
-        });
+        }
     }
     
     public FieldModel getModel() {

@@ -22,19 +22,21 @@ public class HighScores implements Serializable {
     }
 
     public boolean addScoreIfPossible(GameSettings.Type type, Long score) {
-        List<Long> table = scores.get(type);
-        for (int i = 0; i < table.size(); i++) {
-            if (table.get(i) > score) {
-                table.add(i, score);
-                if (table.size() > maxSize) {
-                    table.subList(maxSize, table.size()).clear();
+        if (type != GameSettings.Type.CUSTOM) {
+            List<Long> table = scores.get(type);
+            for (int i = 0; i < table.size(); i++) {
+                if (table.get(i) > score) {
+                    table.add(i, score);
+                    if (table.size() > maxSize) {
+                        table.subList(maxSize, table.size()).clear();
+                    }
+                    return true;
                 }
+            }
+            if (table.size() < maxSize) {
+                table.add(score);
                 return true;
             }
-        }
-        if (table.size() < maxSize) {
-            table.add(score);
-            return true;
         }
         return false;
     }
