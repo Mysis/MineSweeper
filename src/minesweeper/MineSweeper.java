@@ -1,20 +1,14 @@
 package minesweeper;
 
-import java.awt.Desktop;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.ListIterator;
 import java.util.Optional;
-import java.util.Properties;
 import javafx.application.Application;
 import javafx.beans.binding.DoubleBinding;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.VBox;
 import javafx.scene.Scene;
@@ -22,14 +16,16 @@ import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import minesweeper.menus.AppearanceSettings;
+import minesweeper.model.GameConstants;
 import minesweeper.menus.GameMenus;
 import minesweeper.menus.GameSettings;
-import minesweeper.model.GameConstants;
-import minesweeper.view.AppearanceConstants;
+import minesweeper.util.HighScores;
+import minesweeper.util.MineSweeperFiles;
+import minesweeper.view.AppearanceValues;
 import minesweeper.view.GameContainer;
 import minesweeper.view.StatusBar;
 
-public class MineSweeper extends Application {
+public class MineSweeper extends Application implements Serializable {
 
     GameMenus menu;
     GameSettings gameSettings;
@@ -40,6 +36,10 @@ public class MineSweeper extends Application {
     Scene mainScene;
 
     Stage primaryStage;
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -71,7 +71,7 @@ public class MineSweeper extends Application {
         menu.exitItem().setOnAction(e -> primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST)));
 
         primaryStage.setOnCloseRequest(event -> {
-            Alert alert = new Alert(AlertType.CONFIRMATION);
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Exit Minesweeper");
             alert.setHeaderText(null);
             alert.setContentText("Are you sure you want to exit?");
@@ -97,7 +97,7 @@ public class MineSweeper extends Application {
         
         gameContainer.getGame().getModel().gameOverProperty().addListener((observable, oldVal, newVal) -> {
             if (newVal) {
-                gameOver(gameContainer.getGame().getModel().getWin(), statusBar.getTimeMillis());
+                gameOver(gameContainer.getGame().getModel().getWin(), statusBar.getTimeMillis(), gameSettings.getType());
             }
         });
     }
@@ -108,11 +108,11 @@ public class MineSweeper extends Application {
         
         gameContainer.getGame().getModel().gameOverProperty().addListener((observable, oldVal, newVal) -> {
             if (newVal) {
-                gameOver(gameContainer.getGame().getModel().getWin(), statusBar.getTimeMillis());
+                gameOver(gameContainer.getGame().getModel().getWin(), statusBar.getTimeMillis(), gameSettings.getType());
             }
         });
 
-        double[] size = AppearanceConstants.calculateFieldStartSize(constants, appearanceSettings.getConstants());
+        double[] size = AppearanceValues.calculateFieldStartSize(constants, appearanceSettings.getConstants());
         primaryStage.setMinWidth(0);
         primaryStage.setMinHeight(0);
         gameContainer.prefWidthProperty().unbind();
@@ -145,42 +145,22 @@ public class MineSweeper extends Application {
         primaryStage.setMinHeight(primaryStage.getHeight());
     }
     
-    public void gameOver(boolean won, long timeMillis) {
-        boolean beatHighscore = false;
+    public void gameOver(boolean won, Long timeMillis, GameSettings.Type gameMode) {
         boolean newScore = false;
-        long previousTime = 0;
-        Properties properties = new Properties();
+        File highScoresFile = null;
+        HighScores highScores;
         try {
-            File save = new File("save.txt");
-            try {
-                FileInputStream input = new FileInputStream(save);
-                properties.load(input);
-            } catch (FileNotFoundException e) {
-                save.createNewFile();
-                for (GameSettings.Type type : GameSettings.Type.values()) {
-                    if (type != GameSettings.Type.CUSTOM) {
-                        properties.setProperty(type.toString().toLowerCase().concat("_time"), "");
-                    }
-                }
-            }
-            
-            GameSettings.Type gameMode = gameSettings.getType();
-            try {
-                previousTime = Long.parseLong(properties.getProperty(gameMode.toString().toLowerCase().concat("_time")));
-            } catch (NumberFormatException e) {
-                newScore = true;
+            highScoresFile = new File("scores.ser");
+            if (highScoresFile.exists()) {
+                highScores = (HighScores) MineSweeperFiles.readSerializedFile(highScoresFile);
+            } else {
+                highScores = new HighScores(5);
             }
             if (won) {
-                if ((newScore || previousTime > timeMillis) && gameMode != GameSettings.Type.CUSTOM) {
-                    if (!newScore) {
-                        beatHighscore = true;
-                    }
-                    properties.setProperty(gameMode.toString().toLowerCase().concat("_time"), String.valueOf(timeMillis));
-                } 
-                FileOutputStream output = new FileOutputStream(save);
-                properties.store(output, "Minesweeper save");
+                newScore = highScores.addScoreIfPossible(gameMode, timeMillis);
+                MineSweeperFiles.writeSerializedObject(highScores, highScoresFile);
             }
-        } catch (IOException e) {
+        } catch(ClassNotFoundException | IOException e) {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
@@ -195,21 +175,22 @@ public class MineSweeper extends Application {
                 alert.setHeaderText("You lose.");
             }
             alert.setContentText("Time: " + StatusBar.convertTimeMillisToString(timeMillis));
+            alert.showAndWait();
             return;
         }
         
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         StringBuilder content = new StringBuilder("Time: " + StatusBar.convertTimeMillisToString(timeMillis));
-        if (!newScore) {
-            if (won && beatHighscore) {
-                content.append("\n\nYou beat your previous time of ").
-                        append(StatusBar.convertTimeMillisToString(previousTime)).
-                        append("!");
-            } else {
-                content.append("\n\nYour highscore for this difficulty is ").
-                        append(StatusBar.convertTimeMillisToString(previousTime)).
-                        append(".");
-            }
+        if (newScore) {
+            content.append("\n\nYou made a new highscore!");
+        }
+        content.append("\n\nHigh Scores:");
+        ListIterator<Long> iterator = highScores.getScores(gameMode).listIterator();
+        while (iterator.hasNext()) {
+            content.append("\n").
+                    append((iterator.nextIndex() + 1)).
+                    append(": ").
+                    append(StatusBar.convertTimeMillisToString(iterator.next()));
         }
         alert.setContentText(content.toString());
         if (won) {
@@ -220,9 +201,5 @@ public class MineSweeper extends Application {
             alert.setHeaderText("You lose.");
         }
         alert.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

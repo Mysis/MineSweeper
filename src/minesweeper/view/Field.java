@@ -2,8 +2,6 @@ package minesweeper.view;
 
 import javafx.beans.binding.IntegerBinding;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
 import javafx.scene.Node;
 import minesweeper.model.FieldModel;
@@ -12,10 +10,10 @@ import minesweeper.model.GameConstants;
 public class Field extends GridPane {
     
     FieldModel fieldModel;
-    AppearanceConstants appearanceConstants;
+    AppearanceValues appearanceValues;
     
-    public Field(GameConstants gameConstants, AppearanceConstants appearanceConstants, IntegerBinding size) {
-        this.appearanceConstants = appearanceConstants;
+    public Field(GameConstants gameConstants, AppearanceValues appearanceValues, IntegerBinding size) {
+        this.appearanceValues = appearanceValues;
         newGame(gameConstants, size);
     }
     
@@ -24,7 +22,7 @@ public class Field extends GridPane {
         
         for (int x = 0; x < fieldModel.cells().size(); x++) {
             for (int y = 0; y < fieldModel.cells().get(x).size(); y++) {
-                Cell cell = new Cell(size, fieldModel, fieldModel.cells().get(x).get(y), appearanceConstants);
+                Cell cell = new Cell(size, fieldModel, fieldModel.cells().get(x).get(y), appearanceValues);
                 setMargin(cell, new Insets(1));
                 add(cell, x, y);
             }

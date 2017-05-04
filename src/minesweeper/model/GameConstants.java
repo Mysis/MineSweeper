@@ -1,12 +1,14 @@
 package minesweeper.model;
 
-public class GameConstants {
+import java.io.Serializable;
+
+public class GameConstants implements Serializable {
     
     public final int rows;
     public final int columns;
     public final int mines;
     
-    public GameConstants(int rows, int columns, int mines) {
+    public GameConstants(Integer rows, Integer columns, Integer mines) {
         if (rows * columns >= mines) {
             this.rows = rows;
             this.columns = columns;

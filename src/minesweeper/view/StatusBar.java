@@ -56,7 +56,7 @@ public class StatusBar extends BorderPane {
         }
     }
     
-    public StatusBar(AppearanceConstants appearanceConstants) {
+    public StatusBar(AppearanceValues appearanceValues) {
         
         timer = new StopWatch();
         timeStartListener = (observable, oldVal, newVal) -> {
@@ -84,11 +84,11 @@ public class StatusBar extends BorderPane {
         timeLeftLabel.textProperty().bind(Bindings.concat("Time: ", timeString));
         ObjectBinding<Color> textColor = new ObjectBinding<Color>() {
             {
-                super.bind(appearanceConstants.statusBarColorProperty());
+                super.bind(appearanceValues.statusBarColorProperty());
             }
             @Override
             protected Color computeValue() {
-                Color backColor = appearanceConstants.statusBarColorProperty().get();
+                Color backColor = appearanceValues.statusBarColorProperty().get();
                 double colorValue = 1 - (.299 * backColor.getRed() + .597 * backColor.getGreen() + .114 * backColor.getBlue());
                 if (colorValue < 0.5) {
                     return Color.BLACK;
@@ -104,7 +104,7 @@ public class StatusBar extends BorderPane {
                 18.75, 12.5,
                 6.25, 18.75
         );
-        flagIcon.fillProperty().bind(appearanceConstants.flagColorProperty());
+        flagIcon.fillProperty().bind(appearanceValues.flagColorProperty());
         flagsLeftLabel = new Label();
         flagsLeftLabel.textFillProperty().bind(textColor);
         flagsLeftLabel.setAlignment(Pos.CENTER_RIGHT);
@@ -119,7 +119,7 @@ public class StatusBar extends BorderPane {
         setLeft(timeLeftLabel);
         setRight(flagBox);
         
-        backgroundProperty().bind(Bindings.createObjectBinding(() -> new Background(new BackgroundFill(appearanceConstants.statusBarColorProperty().get(), CornerRadii.EMPTY, Insets.EMPTY)), appearanceConstants.statusBarColorProperty()));
+        backgroundProperty().bind(Bindings.createObjectBinding(() -> new Background(new BackgroundFill(appearanceValues.statusBarColorProperty().get(), CornerRadii.EMPTY, Insets.EMPTY)), appearanceValues.statusBarColorProperty()));
         setPadding(new Insets(5, 20, 5, 20));
     }
     

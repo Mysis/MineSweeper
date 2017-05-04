@@ -1,5 +1,8 @@
 package minesweeper.menus;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.EnumMap;
 import javafx.beans.binding.Bindings;
 import javafx.event.EventHandler;
@@ -18,12 +21,24 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import minesweeper.model.GameConstants;
+import minesweeper.util.MineSweeperFiles;
 
-public class GameSettings {
+public class GameSettings implements Serializable {
+    
+    transient File save = new File("settings.ser");
     
     Type currentType;
-    GameConstants previousConstants;
-    Stage stage;
+    transient ToggleGroup gameTypeGroup;
+    transient RadioButton beginner;
+    transient RadioButton intermediate;
+    transient RadioButton expert;
+    transient RadioButton custom;
+    
+    transient TextField rows;
+    transient TextField columns;
+    transient TextField mines;
+    
+    transient Stage stage;
     
     EnumMap<Type, GameConstants> typeValues;
     
@@ -54,16 +69,15 @@ public class GameSettings {
         
         root.setPadding(new Insets(20));
         
-        ToggleGroup defaultsGroup = new ToggleGroup();
-        RadioButton beginner = new RadioButton("Beginner: 9 x 9 grid, 10 mines.");
-        beginner.setToggleGroup(defaultsGroup);
-        RadioButton intermediate = new RadioButton("Intermediate: 16 x 16 grid, 40 mines.");
-        intermediate.setToggleGroup(defaultsGroup);
-        RadioButton expert = new RadioButton("Expert: 16 x 30 grid, 99 mines.");
-        expert.setToggleGroup(defaultsGroup);
-        RadioButton custom = new RadioButton("Custom");
-        custom.setToggleGroup(defaultsGroup);
-        defaultsGroup.selectToggle(beginner);
+        gameTypeGroup = new ToggleGroup();
+        beginner = new RadioButton("Beginner: 9 x 9 grid, 10 mines.");
+        beginner.setToggleGroup(gameTypeGroup);
+        intermediate = new RadioButton("Intermediate: 16 x 16 grid, 40 mines.");
+        intermediate.setToggleGroup(gameTypeGroup);
+        expert = new RadioButton("Expert: 16 x 30 grid, 99 mines.");
+        expert.setToggleGroup(gameTypeGroup);
+        custom = new RadioButton("Custom");
+        custom.setToggleGroup(gameTypeGroup);
         defaultGrids.getChildren().addAll(beginner, intermediate, expert, custom);
         
         customGrid.setHgap(10);
@@ -72,13 +86,13 @@ public class GameSettings {
         customGrid.add(new Label("Columns: "), 0, 1);
         customGrid.add(new Label("Mines: "), 0, 2);
         
-        TextField rows = new TextField();
+        rows = new TextField();
         rows.setPrefColumnCount(3);
         customGrid.add(rows, 1, 0);
-        TextField columns = new TextField();
+        columns = new TextField();
         columns.setPrefColumnCount(3);
         customGrid.add(columns, 1, 1);
-        TextField mines = new TextField();
+        mines = new TextField();
         mines.setPrefColumnCount(3);
         
         rows.addEventFilter(KeyEvent.KEY_TYPED, letterFilter(3));
@@ -87,7 +101,7 @@ public class GameSettings {
         
         customGrid.add(mines, 1, 2);
         
-        customGrid.disableProperty().bind(Bindings.when(defaultsGroup.selectedToggleProperty().isEqualTo(custom)).then(false).otherwise(true));
+        customGrid.disableProperty().bind(Bindings.when(gameTypeGroup.selectedToggleProperty().isEqualTo(custom)).then(false).otherwise(true));
         
         Button ok = new Button("OK");
         ok.setPrefWidth(125);
@@ -98,22 +112,30 @@ public class GameSettings {
         buttons.setAlignment(Pos.BOTTOM_RIGHT);
         buttons.getChildren().addAll(ok, cancel);
         
+        if (save.exists()) {
+            loadSettings(save);
+        } else {
+            currentType = Type.BEGINNER;
+            gameTypeGroup.selectToggle(beginner);
+        }
+        
         ok.disableProperty().bind(Bindings.when(
-                Bindings.and(defaultsGroup.selectedToggleProperty().isEqualTo(custom), 
+                Bindings.and(gameTypeGroup.selectedToggleProperty().isEqualTo(custom), 
                 Bindings.or(Bindings.or(rows.textProperty().isEmpty(), columns.textProperty().isEmpty()), mines.textProperty().isEmpty())))
                 .then(true).otherwise(false));
         
         ok.setOnAction(e -> {
-            if (defaultsGroup.getSelectedToggle() == beginner) {
+            if (gameTypeGroup.getSelectedToggle() == beginner) {
                 currentType = Type.BEGINNER;
-            } else if (defaultsGroup.getSelectedToggle() == intermediate) {
+            } else if (gameTypeGroup.getSelectedToggle() == intermediate) {
                 currentType = Type.INTERMEDIATE;
-            } else if (defaultsGroup.getSelectedToggle() == expert) {
+            } else if (gameTypeGroup.getSelectedToggle() == expert) {
                 currentType = Type.EXPERT;
-            } else if (defaultsGroup.getSelectedToggle() == custom) {
+            } else if (gameTypeGroup.getSelectedToggle() == custom) {
                 currentType = Type.CUSTOM;
                 typeValues.put(Type.CUSTOM, new GameConstants(Integer.parseInt(rows.getText()), Integer.parseInt(columns.getText()), Integer.parseInt(mines.getText())));
             }
+            saveSettings(save);
             Stage stage = (Stage) cancel.getScene().getWindow();
             stage.close();
         });
@@ -150,8 +172,58 @@ public class GameSettings {
         };
     }
     
+    private RadioButton typeToButton(Type type) {
+        if (type == Type.BEGINNER) {
+            return beginner;
+        } else if (type == Type.INTERMEDIATE) {
+            return intermediate;
+        } else if (type == Type.EXPERT) {
+            return expert;
+        } else if (type == Type.CUSTOM) {
+            return custom;
+        } else {
+            throw new IllegalArgumentException("Type has no associated button.");
+        }
+    }
+    private Type buttonToType(RadioButton button) {
+        if (button == beginner) {
+            return Type.BEGINNER;
+        } else if (button == intermediate) {
+            return Type.INTERMEDIATE;
+        } else if (button == expert) {
+            return Type.EXPERT;
+        } else if (button == custom) {
+            return Type.CUSTOM;
+        } else {
+            throw new IllegalArgumentException("Button not found");
+        }
+    }
+    
     public void showWindow() {
         stage.showAndWait();
+    }
+    
+    private void saveSettings(File file) {
+        try {
+            MineSweeperFiles.writeSerializedObject(this, file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void loadSettings(File file) {
+        try {
+            GameSettings oldSettings = (GameSettings) MineSweeperFiles.readSerializedFile(file);
+            currentType = oldSettings.currentType;
+            gameTypeGroup.selectToggle(typeToButton(currentType));
+            GameConstants oldCustom = oldSettings.typeValues.get(Type.CUSTOM);
+            typeValues.put(Type.CUSTOM, oldCustom);
+            rows.setText(String.valueOf(oldCustom.rows));
+            columns.setText(String.valueOf(oldCustom.columns));
+            mines.setText(String.valueOf(oldCustom.mines));
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
     
     public Type getType() {

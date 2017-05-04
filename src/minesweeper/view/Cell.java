@@ -29,26 +29,26 @@ public class Cell extends StackPane {
     Rectangle shape;
     Polygon flag;
     IntegerBinding size;
-    AppearanceConstants appearanceConstants;
+    AppearanceValues appearanceValues;
 
-    public Cell(IntegerBinding size, FieldModel fieldModel, CellModel cellModel, AppearanceConstants appearanceConstants) {
+    public Cell(IntegerBinding size, FieldModel fieldModel, CellModel cellModel, AppearanceValues appearanceValues) {
 
         this.size = size;
         this.fieldModel = fieldModel;
         this.cellModel = cellModel;
-        this.appearanceConstants = appearanceConstants;
+        this.appearanceValues = appearanceValues;
 
         shape = new Rectangle();
         shape.widthProperty().bind(size);
         shape.heightProperty().bind(size);
-        shape.fillProperty().bind(Bindings.when(cellModel.stateProperty().isEqualTo(State.REVEALED)).then(appearanceConstants.cellRevealedColorProperty()).otherwise(appearanceConstants.cellColorProperty()));
+        shape.fillProperty().bind(Bindings.when(cellModel.stateProperty().isEqualTo(State.REVEALED)).then(appearanceValues.cellRevealedColorProperty()).otherwise(appearanceValues.cellColorProperty()));
         getChildren().add(shape);
         
         flag = new Polygon(
                 0, 0, 
                 0.5, 0.25, 
                 0, 0.5);
-        flag.fillProperty().bind(appearanceConstants.flagColorProperty());
+        flag.fillProperty().bind(appearanceValues.flagColorProperty());
         setAlignment(flag, Pos.CENTER);
         getChildren().add(flag);
         
@@ -121,8 +121,8 @@ public class Cell extends StackPane {
                     }
                 }
             };
-            topLeftBottomRight.strokeProperty().bind(appearanceConstants.cellRevealedColorProperty());
-            topRightBottomLeft.strokeProperty().bind(appearanceConstants.cellRevealedColorProperty());
+            topLeftBottomRight.strokeProperty().bind(appearanceValues.cellRevealedColorProperty());
+            topRightBottomLeft.strokeProperty().bind(appearanceValues.cellRevealedColorProperty());
             topLeftBottomRight.startXProperty().bind(size.multiply(-0.25));
             topLeftBottomRight.startYProperty().bind(size.multiply(-0.25));
             topLeftBottomRight.endXProperty().bind(size.multiply(0.25));
@@ -139,7 +139,7 @@ public class Cell extends StackPane {
             getChildren().add(topRightBottomLeft);
         } else {
             Ellipse mine = new Ellipse(.25, .25);
-            mine.fillProperty().bind(appearanceConstants.mineColorProperty());
+            mine.fillProperty().bind(appearanceValues.mineColorProperty());
             setAlignment(mine, Pos.CENTER);
             getChildren().add(mine);
             mine.scaleXProperty().bind(size);

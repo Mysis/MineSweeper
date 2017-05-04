@@ -4,7 +4,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.layout.StackPane;
 import minesweeper.model.GameConstants;
 
@@ -12,22 +11,22 @@ public class GameContainer extends StackPane {
     
     Field game;
     GameConstants gameConstants;
-    AppearanceConstants appearanceConstants;
+    AppearanceValues appearanceValues;
 
-    public GameContainer(AppearanceConstants appearanceConstants) {
-        this.appearanceConstants = appearanceConstants;
-        paddingProperty().bind(Bindings.createObjectBinding(() -> new Insets(appearanceConstants.gameBoundarySizeProperty().get()), appearanceConstants.gameBoundarySizeProperty()));
+    public GameContainer(AppearanceValues appearanceValues) {
+        this.appearanceValues = appearanceValues;
+        paddingProperty().bind(Bindings.createObjectBinding(() -> new Insets(appearanceValues.gameBoundarySizeProperty().get()), appearanceValues.gameBoundarySizeProperty()));
     }
     
     public IntegerBinding calculateSize() {
         IntegerBinding calculateSize = new IntegerBinding() {
             {
-                super.bind(prefWidthProperty(), prefHeightProperty(), appearanceConstants.gameBoundarySizeProperty());
+                super.bind(prefWidthProperty(), prefHeightProperty(), appearanceValues.gameBoundarySizeProperty());
             }
             @Override
             protected int computeValue() {
-                int width = (int) ((prefWidthProperty().get() - gameConstants.columns - 2 * appearanceConstants.gameBoundarySizeProperty().get()) / gameConstants.columns) - 1;
-                int height = (int) ((prefHeightProperty().get() - gameConstants.rows - 2 * appearanceConstants.gameBoundarySizeProperty().get()) / gameConstants.rows) - 1;
+                int width = (int) ((prefWidthProperty().get() - gameConstants.columns - 2 * appearanceValues.gameBoundarySizeProperty().get()) / gameConstants.columns) - 1;
+                int height = (int) ((prefHeightProperty().get() - gameConstants.rows - 2 * appearanceValues.gameBoundarySizeProperty().get()) / gameConstants.rows) - 1;
                 if (width > height) {
                     return height;
                 } else {
@@ -43,7 +42,7 @@ public class GameContainer extends StackPane {
             getChildren().remove(game);
         }
         
-        game = new Field(gameConstants, appearanceConstants, calculateSize());
+        game = new Field(gameConstants, appearanceValues, calculateSize());
         
         getChildren().add(game);
         game.setAlignment(Pos.CENTER);
