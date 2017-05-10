@@ -156,18 +156,6 @@ public class GameSettings implements Serializable {
         stage.setTitle("Minesweeper Settings");
     }
     
-    private EventHandler<KeyEvent> letterFilter(final Integer maxLength) {
-        return e -> {
-            TextField textField = (TextField) e.getSource();                
-            if (textField.getText().length() >= maxLength) {                    
-                e.consume();
-            }
-            if (!e.getCharacter().matches("[0-9]")) { 
-                e.consume();
-            }
-        };
-    }
-    
     private RadioButton typeToButton(Type type) {
         if (type == Type.BEGINNER) {
             return beginner;
