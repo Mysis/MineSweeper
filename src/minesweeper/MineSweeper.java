@@ -1,7 +1,5 @@
 package minesweeper;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ListIterator;
 import java.util.Optional;
@@ -19,8 +17,8 @@ import minesweeper.menus.AppearanceSettings;
 import minesweeper.model.GameConstants;
 import minesweeper.menus.GameMenus;
 import minesweeper.menus.GameSettings;
-import minesweeper.util.HighScores;
-import minesweeper.util.MineSweeperFiles;
+import minesweeper.menus.HighScores;
+import minesweeper.util.HighScoresSave;
 import minesweeper.view.AppearanceValues;
 import minesweeper.view.GameContainer;
 import minesweeper.view.StatusBar;
@@ -30,6 +28,7 @@ public class MineSweeper extends Application implements Serializable {
     GameMenus menu;
     GameSettings gameSettings;
     AppearanceSettings appearanceSettings;
+    HighScores highScores;
     StatusBar statusBar;
     GameContainer gameContainer;
     VBox root;
@@ -44,9 +43,10 @@ public class MineSweeper extends Application implements Serializable {
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
-
+        
         gameSettings = new GameSettings(primaryStage);
         appearanceSettings = new AppearanceSettings();
+        highScores = new HighScores();
 
         root = new VBox();
         root.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
@@ -65,9 +65,8 @@ public class MineSweeper extends Application implements Serializable {
                 newGame(gameSettings.getSettings());
             }
         });
-        menu.changeAppearanceItem().setOnAction(e -> {
-            appearanceSettings.showWindow();
-        });
+        menu.changeAppearanceItem().setOnAction(e -> appearanceSettings.showWindow());
+        menu.highScoresItem().setOnAction(e -> highScores.showWindow());
         menu.exitItem().setOnAction(e -> primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST)));
 
         primaryStage.setOnCloseRequest(event -> {
@@ -82,6 +81,7 @@ public class MineSweeper extends Application implements Serializable {
                     event.consume();
                 }
             }
+            System.exit(0);
         });
 
         primaryStage.setTitle("Minesweeper");
@@ -146,39 +146,12 @@ public class MineSweeper extends Application implements Serializable {
     }
 
     public void gameOver(boolean won, Long timeMillis, GameSettings.Type gameMode) {
+        HighScoresSave scores = highScores.getScores();
         boolean newScore = false;
-        File highScoresFile = null;
-        HighScores highScores;
-        try {
-            highScoresFile = new File("scores.ser");
-            if (highScoresFile.exists()) {
-                highScores = (HighScores) MineSweeperFiles.readSerializedFile(highScoresFile);
-            } else {
-                highScores = new HighScores(5);
-            }
-            if (won) {
-                newScore = highScores.addScoreIfPossible(gameMode, timeMillis);
-                MineSweeperFiles.writeSerializedObject(highScores, highScoresFile);
-            }
-        } catch (ClassNotFoundException | IOException e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("Unable to read/write to save file.");
-            alert.showAndWait();
-            alert = new Alert(Alert.AlertType.INFORMATION);
-            if (won) {
-                alert.setTitle("Game Won");
-                alert.setHeaderText("You win!");
-            } else {
-                alert.setTitle("Game Lost");
-                alert.setHeaderText("You lose.");
-            }
-            alert.setContentText("Time: " + StatusBar.convertTimeMillisToString(timeMillis));
-            alert.showAndWait();
-            return;
+        if (won) {
+            newScore = highScores.addScoreIfPossible(gameMode, timeMillis);
+            highScores.save();
         }
-
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         StringBuilder content = new StringBuilder("Time: " + StatusBar.convertTimeMillisToString(timeMillis));
         if (gameMode != GameSettings.Type.CUSTOM) {
@@ -186,7 +159,7 @@ public class MineSweeper extends Application implements Serializable {
                 content.append("\n\nYou made a new highscore!");
             }
             content.append("\n\nHigh Scores:");
-            ListIterator<Long> iterator = highScores.getScores(gameMode).listIterator();
+            ListIterator<Long> iterator = scores.getScoresOfType(gameMode).listIterator();
             while (iterator.hasNext()) {
                 content.append("\n").
                         append((iterator.nextIndex() + 1)).

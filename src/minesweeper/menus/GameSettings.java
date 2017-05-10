@@ -18,10 +18,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.Scene;
+import javafx.scene.control.TextFormatter;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import minesweeper.model.GameConstants;
 import minesweeper.util.MineSweeperFiles;
+import minesweeper.util.NumberFilter;
 
 public class GameSettings implements Serializable {
     
@@ -95,9 +97,9 @@ public class GameSettings implements Serializable {
         mines = new TextField();
         mines.setPrefColumnCount(3);
         
-        rows.addEventFilter(KeyEvent.KEY_TYPED, letterFilter(3));
-        columns.addEventFilter(KeyEvent.KEY_TYPED, letterFilter(3));
-        mines.addEventFilter(KeyEvent.KEY_TYPED, letterFilter(3));
+        rows.setTextFormatter(new TextFormatter<>(new NumberFilter(3)));
+        columns.setTextFormatter(new TextFormatter<>(new NumberFilter(3)));
+        mines.setTextFormatter(new TextFormatter<>(new NumberFilter(3)));
         
         customGrid.add(mines, 1, 2);
         
@@ -156,17 +158,11 @@ public class GameSettings implements Serializable {
     
     private EventHandler<KeyEvent> letterFilter(final Integer maxLength) {
         return e -> {
-            TextField txt_TextField = (TextField) e.getSource();                
-            if (txt_TextField.getText().length() >= maxLength) {                    
+            TextField textField = (TextField) e.getSource();                
+            if (textField.getText().length() >= maxLength) {                    
                 e.consume();
             }
-            if (e.getCharacter().matches("[0-9.]")){ 
-                if (txt_TextField.getText().contains(".") && e.getCharacter().matches("[.]")){
-                    e.consume();
-                }else if (txt_TextField.getText().length() == 0 && e.getCharacter().matches("[.]")){
-                    e.consume(); 
-                }
-            } else {
+            if (!e.getCharacter().matches("[0-9]")) { 
                 e.consume();
             }
         };
