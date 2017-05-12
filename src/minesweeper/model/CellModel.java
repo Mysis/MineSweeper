@@ -10,23 +10,27 @@ import javafx.beans.property.SimpleObjectProperty;
 
 public class CellModel {
 
+    //number of mines surrounding cell
     private IntegerProperty surrounding = new SimpleIntegerProperty(0);
 
-    private BooleanProperty mine;
-    private ObjectProperty<State> state = new SimpleObjectProperty<>(State.HIDDEN);
-    private ReadOnlyBooleanProperty gameOver;
+    private BooleanProperty mine; //whether or not is mine
+    private ObjectProperty<State> state = new SimpleObjectProperty<>(State.HIDDEN); //current state
+    private ReadOnlyBooleanProperty gameOver; //reference to game over from fieldmodel
 
+    //enum for current state of cell
     public enum State {
         HIDDEN,
         REVEALED,
         FLAGGED
     }
 
+    //init cell
     public CellModel(boolean isMine, ReadOnlyBooleanProperty gameOverCheck) {
         mine = new SimpleBooleanProperty(isMine);
         gameOver = gameOverCheck;
     }
 
+    //toggle flag if game is not over and cell is not revealed
     public void toggleFlag() {
         if (!gameOver.get()) {
             if (state.get() != State.REVEALED) {
@@ -39,6 +43,7 @@ public class CellModel {
         }
     }
 
+    //reveal cell if game is not over and cell is not flagged
     public void reveal() {
         if (!gameOver.get()) {
             if (state.get() != State.FLAGGED) {

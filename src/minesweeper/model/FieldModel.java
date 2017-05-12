@@ -13,15 +13,16 @@ import minesweeper.model.CellModel.State;
 public class FieldModel {
 
     private ObservableList<ObservableList<CellModel>> cells = FXCollections.observableArrayList();
-    private ReadOnlyBooleanWrapper gameOver = new ReadOnlyBooleanWrapper(false);
-    private ReadOnlyBooleanWrapper win = new ReadOnlyBooleanWrapper(false);
-    private ReadOnlyBooleanWrapper firstCell = new ReadOnlyBooleanWrapper(true);
+    private ReadOnlyBooleanWrapper gameOver = new ReadOnlyBooleanWrapper(false); //is game over
+    private ReadOnlyBooleanWrapper win = new ReadOnlyBooleanWrapper(false); //did player win
+    private ReadOnlyBooleanWrapper firstCell = new ReadOnlyBooleanWrapper(true); //has the player started the game (true if player has not started)
     
     GameConstants gameConstants;
 
     public FieldModel(GameConstants gameConstants) {
         this.gameConstants = gameConstants;
 
+        //shuffle mines into a bag, then select them one by one out of the bag (like a bag of marbles)
         List<Boolean> minesBag = new ArrayList<>();
         int addMines = gameConstants.mines;
         for (int i = 0; i < gameConstants.rows * gameConstants.columns; i++) {
@@ -41,10 +42,11 @@ public class FieldModel {
                 addStateListener(newCell);
                 cells.get(i).add(newCell);
             }
-            calculateSurroundingCells();
         }
+        calculateSurroundingCells();
     }
     
+    //assign surrounding number of mines to all cells
     private void calculateSurroundingCells() {
         for (List<CellModel> column : cells) {
             for (CellModel cell : column) {
@@ -59,6 +61,7 @@ public class FieldModel {
         }
     }
 
+    //get cells surrounding passed in cell
     private List<CellModel> surroundingCells(CellModel cell) throws IllegalArgumentException {
         int x = -2;
         int y = -2;
@@ -73,6 +76,7 @@ public class FieldModel {
             throw new IllegalArgumentException("Cell does not exist in this grid.");
         }
 
+        //get all cells surrounding passed in cell, excluding itself and ignoring array out of bounds errors (if cell is on the edge of the grid)
         List<CellModel> surrounding = new ArrayList<>();
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
@@ -87,10 +91,13 @@ public class FieldModel {
         return surrounding;
     }
     
+    //add listeners to cell
     private void addStateListener(CellModel cell) {
         cell.stateProperty().addListener(o -> {
+            //called each time cell is revealed
             if (cell.getState() == State.REVEALED) {
                 if (cell.getMine()) {
+                    //if the first cell clicked is a mine, relocate the mine
                     if (firstCell.get()) {
                         relocateMine(cell);
                         if (cell.getSurrounding() == 0) {
@@ -100,6 +107,7 @@ public class FieldModel {
                         lose();
                     }
                 } else {
+                    //reveal all cells surrounding selected cell if cell has no mines surrounding it
                     if (cell.getSurrounding() == 0) {
                         revealCells(cell);
                     }
@@ -112,6 +120,7 @@ public class FieldModel {
         });
     }
 
+    //reveal cells surrounding passed in cell
     public void revealCells(CellModel cell) {
         for (CellModel surrounding : surroundingCells(cell)) {
             if (surrounding.getState() == State.HIDDEN) {
@@ -123,11 +132,13 @@ public class FieldModel {
         }
     }
     
-    private void relocateMine(CellModel cell) {
+    //relocate mine if mine is the first cell clicked
+    private void relocateMine(CellModel cell) throws IllegalArgumentException {
         if (cell.getMine() == false) {
             throw new IllegalArgumentException("This cell does not contain a mine.");
         }
         
+        //get all cells, then randomly select cells until a cell without a mine is selected
         List<CellModel> possibleCells = new ArrayList<>();
         for (List<CellModel> column : cells) {
             possibleCells.addAll(column);
@@ -136,11 +147,12 @@ public class FieldModel {
         boolean done = false;
         CellModel newMine;
         while(!done) {
+            //continue only if cell does not contain a mine
             if (!possibleCells.get(0).getMine()) {
-                newMine = possibleCells.get(0);
+                newMine = possibleCells.get(0); //cell where the new mine will be placed
                 newMine.setMine(true);
                 cell.setMine(false);
-                List<CellModel> cellsToRecalculate = surroundingCells(newMine);
+                List<CellModel> cellsToRecalculate = surroundingCells(newMine); //cells that need to have surrounding mines recalculated after move, start with cells around new mine
                 for (CellModel cellToRecalculate : cellsToRecalculate) {
                     int surrounding = 0;
                     for (CellModel cellSurroundingCellToRecalculate : surroundingCells(cellToRecalculate)) {
@@ -150,7 +162,7 @@ public class FieldModel {
                     }
                     cellToRecalculate.setSurrounding(surrounding);
                 }
-                cellsToRecalculate = surroundingCells(cell);
+                cellsToRecalculate = surroundingCells(cell); //recalculate cells surrounding old mine
                 for (CellModel cellToRecalculate : cellsToRecalculate) {
                     int surrounding = 0;
                     for (CellModel cellSurroundingCellToRecalculate : surroundingCells(cellToRecalculate)) {
@@ -162,17 +174,20 @@ public class FieldModel {
                 }
                 done = true;
             } else {
+                //remove cell from the bag if it is a mine
                 possibleCells.remove(0);
             }
         }
     }
 
+    //check if player has won
     public boolean checkWin() {
         if (gameOver.get()) {
             return win.get();
         }
         for (ObservableList<CellModel> column : cells()) {
             for (CellModel cell : column) {
+                //if any cells contain a hidden mine, return false (if the player has revealed all cells that do not contain a mine, will return true, even if some mines are still hidden)
                 if (!cell.getMine() && cell.getState() == State.HIDDEN) {
                     return false;
                 }
@@ -181,6 +196,7 @@ public class FieldModel {
         return true;
     }
 
+    //flag mines that have not been flagged
     public void win() {
         for (ObservableList<CellModel> column : cells()) {
             for (CellModel cell : column) {
@@ -193,6 +209,7 @@ public class FieldModel {
         gameOver.set(true);
     }
 
+    //reveal all mines
     public void lose() {
         for (ObservableList<CellModel> column : cells()) {
             for (CellModel cell : column) {
@@ -208,6 +225,7 @@ public class FieldModel {
         return cells;
     }
     
+    //binding that updates based on the number of flags that have been placed by the user
     public IntegerBinding flagsPlacedProperty() {
         return new IntegerBinding() {
             List<CellModel> allCells = new ArrayList<>();

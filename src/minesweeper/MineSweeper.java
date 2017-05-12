@@ -44,20 +44,24 @@ public class MineSweeper extends Application implements Serializable {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         
+        //init game windows
         gameSettings = new GameSettings(primaryStage);
         appearanceSettings = new AppearanceSettings();
         highScores = new HighScores();
 
+        //create game content
         root = new VBox();
         root.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
         menu = new GameMenus();
-        gameContainer = new GameContainer(appearanceSettings.getConstants());
         statusBar = new StatusBar(appearanceSettings.getConstants());
+        gameContainer = new GameContainer(appearanceSettings.getConstants());
         root.getChildren().addAll(menu, statusBar, gameContainer);
 
+        //init scene
         mainScene = new Scene(root);
         mainScene.fillProperty().bind(appearanceSettings.getConstants().backgroundColorProperty());
 
+        //set actions for menu options
         menu.newGameItem().setOnAction(e -> newGame());
         menu.optionsItem().setOnAction(e -> {
             gameSettings.showWindow();
@@ -69,6 +73,7 @@ public class MineSweeper extends Application implements Serializable {
         menu.highScoresItem().setOnAction(e -> highScores.showWindow());
         menu.exitItem().setOnAction(e -> primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST)));
 
+        //create confirmation dialog when closing if a game is in progress
         primaryStage.setOnCloseRequest(event -> {
             if (!gameContainer.getGame().getModel().getGameOver() && !gameContainer.getGame().getModel().getFirstCell()) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -84,17 +89,22 @@ public class MineSweeper extends Application implements Serializable {
             System.exit(0);
         });
 
+        //show window
         primaryStage.setTitle("Minesweeper");
         primaryStage.setScene(mainScene);
         primaryStage.show();
 
+        //create first game
         newGame(gameSettings.getSettings());
     }
 
+    //start a new game using existing settings
     public void newGame() {
+        //create new game
         gameContainer.newGame();
         statusBar.newGame(gameContainer.getGame().getModel());
 
+        //add listener to call gameOver(...) when game is over
         gameContainer.getGame().getModel().gameOverProperty().addListener((observable, oldVal, newVal) -> {
             if (newVal) {
                 gameOver(gameContainer.getGame().getModel().getWin(), statusBar.getTimeMillis(), gameSettings.getType());
@@ -102,30 +112,35 @@ public class MineSweeper extends Application implements Serializable {
         });
     }
 
+    //create a new game using new settings
     public void newGame(GameConstants constants) {
+        //create new game
         gameContainer.newGame(constants);
         statusBar.newGame(gameContainer.getGame().getModel());
-
+        
+        //add listener to call gameOver(...) when game is over
         gameContainer.getGame().getModel().gameOverProperty().addListener((observable, oldVal, newVal) -> {
             if (newVal) {
                 gameOver(gameContainer.getGame().getModel().getWin(), statusBar.getTimeMillis(), gameSettings.getType());
             }
         });
 
+        //get size of game, and set stage min width and height accordingly
         double[] size = AppearanceValues.calculateFieldStartSize(constants, appearanceSettings.getConstants());
         primaryStage.setMinWidth(0);
         primaryStage.setMinHeight(0);
+        //unbind gameContainer width and height for manual setting, then shrink stage to new size
         gameContainer.prefWidthProperty().unbind();
         gameContainer.prefHeightProperty().unbind();
         gameContainer.setPrefSize(size[0], size[1]);
         primaryStage.sizeToScene();
 
+        //rebind width and height of gameContainer to scene size
         gameContainer.prefWidthProperty().bind(mainScene.widthProperty());
         DoubleBinding prefHeight = new DoubleBinding() {
             {
                 super.bind(mainScene.heightProperty(), root.getChildren());
             }
-
             @Override
             protected double computeValue() {
                 double value = mainScene.heightProperty().get();
@@ -141,18 +156,26 @@ public class MineSweeper extends Application implements Serializable {
         };
         gameContainer.prefHeightProperty().bind(prefHeight);
 
+        //set stage min width and height with new stage size
         primaryStage.setMinWidth(primaryStage.getWidth());
         primaryStage.setMinHeight(primaryStage.getHeight());
     }
 
+    //called when the game ends
     public void gameOver(boolean won, Long timeMillis, GameSettings.Type gameMode) {
+        //get current highscores
         HighScoresSave scores = highScores.getScores();
+        
+        //check if new score is added
         boolean newScore = false;
         if (won) {
             newScore = highScores.addScoreIfPossible(gameMode, timeMillis);
             highScores.save();
         }
+        
+        //create dialog for game over message
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        //create stringbuilder to create content of dialog
         StringBuilder content = new StringBuilder("Time: " + StatusBar.convertTimeMillisToString(timeMillis));
         if (gameMode != GameSettings.Type.CUSTOM) {
             if (newScore) {
@@ -168,6 +191,7 @@ public class MineSweeper extends Application implements Serializable {
             }
         }
         alert.setContentText(content.toString());
+        //set remaining content of dialog based on win or lose
         if (won) {
             alert.setTitle("Game Won");
             alert.setHeaderText("You win!");

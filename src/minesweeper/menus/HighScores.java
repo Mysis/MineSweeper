@@ -36,6 +36,7 @@ import minesweeper.view.StatusBar;
 
 public class HighScores {
 
+    //save file location
     File save = new File("scores.ser");
 
     HighScoresSave scores;
@@ -46,6 +47,7 @@ public class HighScores {
 
     public HighScores() {
 
+        //load save if exists
         if (save.exists()) {
             try {
                 scores = (HighScoresSave) MineSweeperFiles.readSerializedFile(save);
@@ -62,6 +64,7 @@ public class HighScores {
             scores = new HighScoresSave(5);
         }
 
+        //init layout
         VBox root = new VBox(15);
         HBox content = new HBox(15);
         VBox left = new VBox(15);
@@ -71,11 +74,13 @@ public class HighScores {
         root.getChildren().addAll(content, buttons);
         root.setPadding(new Insets(20));
 
+        //init listview
         ListView<Long> scoresView = new ListView<>();
         scoresView.setFocusModel(null);
         scoresView.setPrefHeight(122);
         scoresView.setPrefWidth(100);
 
+        //convert raw longs to readable strings (MM:SS.LLL)
         scoresView.setCellFactory(new Callback<ListView<Long>, ListCell<Long>>() {
             @Override
             public ListCell<Long> call(ListView<Long> list) {
@@ -89,11 +94,13 @@ public class HighScores {
             }
         });
 
+        //init reset button
         Button reset = new Button("Reset");
         reset.setPrefWidth(75);
         
         left.getChildren().addAll(scoresView);
 
+        //create choice box with all game types except custom
         ChoiceBox<GameSettings.Type> highScoreType = new ChoiceBox<>();
         highScoreType.setConverter(new GameTypeConverter());
         for (GameSettings.Type type : GameSettings.Type.values()) {
@@ -103,6 +110,7 @@ public class HighScores {
         }
         highScoreType.setValue(scores.getLastTypeInHighScoresWindow());
 
+        //create option to limit length of high score list
         limitHighScoreListSize = new CheckBox("Limit size of high score list to:");
         limitHighScoreListSize.setSelected(scores.getHasMax());
         limit = new TextField(String.valueOf(scores.getMaxSize()));
@@ -115,6 +123,7 @@ public class HighScores {
         
         right.getChildren().addAll(highScoreType, reset, highScoreListSizeOption);
 
+        //init buttons
         Button ok = new Button("OK");
         ok.setPrefWidth(75);
         ok.setDefaultButton(true);
@@ -126,11 +135,15 @@ public class HighScores {
         buttons.getChildren().addAll(ok, cancel, apply);
         buttons.setAlignment(Pos.BOTTOM_RIGHT);
         
+        //set reset button action
         reset.setOnAction(e -> {
+            //confirmation dialog if user has not suppressed dialog
             if (!scores.getSuppressResetConfimation()) {
+                //create custom alert with option to suppress future confirmations
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.getDialogPane().applyCss();
                 Node graphic = alert.getDialogPane().getGraphic();
+                //opt out option
                 CheckBox optOut = new CheckBox();
                 alert.setDialogPane(new DialogPane() {
                     @Override
@@ -139,6 +152,7 @@ public class HighScores {
                         return optOut;
                     }
                 });
+                //create alert content
                 alert.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
                 alert.getDialogPane().setContentText(
                         "This will permanently delete the scores of this difficulty level. This cannot be undone. Are you sure you want to continue?");
@@ -148,6 +162,7 @@ public class HighScores {
                 alert.setTitle("Reset High Scores");
                 alert.setHeaderText(null);
                 Optional<ButtonType> result = alert.showAndWait();
+                //clear high scores and save suppress option if 'ok' is selected
                 if (result.isPresent() && result.get() == ButtonType.OK) {
                     scores.resetScoresOfType(highScoreType.getValue());
                     scores.setSuppressResetConfirmation(optOut.isSelected());
@@ -157,15 +172,14 @@ public class HighScores {
             }
         });
 
+        //create binding for content of listview based on selection of choice box
         ObjectBinding<ObservableList<Long>> scoresListViewBinding = new ObjectBinding<ObservableList<Long>>() {
             private final List<GameSettings.Type> allTypesExceptCustom;
-
             {
                 allTypesExceptCustom = new ArrayList<>(Arrays.asList(GameSettings.Type.values()));
                 allTypesExceptCustom.remove(GameSettings.Type.CUSTOM);
                 super.bind(highScoreType.valueProperty());
             }
-
             @Override
             protected ObservableList<Long> computeValue() {
                 for (GameSettings.Type type : allTypesExceptCustom) {
@@ -178,10 +192,12 @@ public class HighScores {
         };
         scoresView.itemsProperty().bind(scoresListViewBinding);
 
+        //save last type each time a new type is selected (ie choice box is the same as the last selected when user reopends window)
         highScoreType.valueProperty().addListener((observable, oldVal, newVal) -> {
             scores.setLastTypeInHighScoresWindow(newVal);
         });
 
+        //set button actions
         ok.setOnAction(e -> {
             try {
                 applySettings();
@@ -201,6 +217,7 @@ public class HighScores {
             }
         });
 
+        //show window
         Scene scene = new Scene(root);
         stage = new Stage();
         stage.setScene(scene);
@@ -209,6 +226,7 @@ public class HighScores {
         stage.setTitle("High Scores");
     }
 
+    //private converter class to convert game types to readable strings
     private class GameTypeConverter extends StringConverter<GameSettings.Type> {
 
         @Override
@@ -227,6 +245,7 @@ public class HighScores {
         }
     }
 
+    //apply settings
     private void applySettings() throws IOException {
         if (limitHighScoreListSize.isSelected()) {
             scores.setMaxSize(Integer.parseInt(limit.getText()));
@@ -241,6 +260,7 @@ public class HighScores {
         stage.show();
     }
 
+    //save settings
     public void save() {
         try {
             scores.prepForSave();

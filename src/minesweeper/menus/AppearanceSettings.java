@@ -23,6 +23,7 @@ import minesweeper.view.AppearanceValues;
 
 public class AppearanceSettings implements Serializable {
     
+    //location of appearancesettings save file
     File save = new File("appearance.ser");
     
     ColorPicker cell;
@@ -38,10 +39,10 @@ public class AppearanceSettings implements Serializable {
     
     public AppearanceSettings() {
         
+        //init layout
         VBox root = new VBox(15);
         GridPane colors = new GridPane();
         HBox buttons = new HBox(15);
-        
         root.getChildren().addAll(colors, buttons);
         root.setPadding(new Insets(20));
 
@@ -55,6 +56,7 @@ public class AppearanceSettings implements Serializable {
         colors.add(new Label("Background color:"), 2, 1);
         colors.add(new Label("Status bar color:"), 2, 2);
         
+        //load save data if save exists, otherwise use defaults
         if (save.exists()) {
             loadValues(save);
         } else {
@@ -79,12 +81,15 @@ public class AppearanceSettings implements Serializable {
         appearanceValues.statusBarColorProperty().bindBidirectional(statusBar.valueProperty());
         colors.add(statusBar, 3, 2);
         
+        //load custom colors if save exists
         if (save.exists()) {
             loadCustoms(save);
         }
         
+        //set previous values to revert to if user clicks 'cancel'
         previous = new AppearanceValues(appearanceValues);
         
+        //init buttons
         Button ok = new Button("OK");
         ok.setPrefWidth(125);
         ok.setDefaultButton(true);
@@ -96,6 +101,7 @@ public class AppearanceSettings implements Serializable {
         buttons.getChildren().addAll(ok, defaults, cancel);
         buttons.setAlignment(Pos.BOTTOM_RIGHT);
         
+        //set actions for buttons
         ok.setOnAction(e -> {
             saveValues();
             stage.close();
@@ -115,7 +121,9 @@ public class AppearanceSettings implements Serializable {
         stage.setTitle("Appearance Settings");
     }
     
+    //save values by serializing (this) object
     private void saveValues() {
+        //convert observablelist (not serializable) to serializable arraylist
         List<ObservableList<Color>> colors = new ArrayList<>();
         Collections.addAll(colors, cell.getCustomColors(), cellRevealed.getCustomColors(), mine.getCustomColors(), flag.getCustomColors(), background.getCustomColors(), statusBar.getCustomColors());
         AppearanceSettingsSave appearanceSettingsSave = new AppearanceSettingsSave(appearanceValues, colors);
@@ -126,17 +134,20 @@ public class AppearanceSettings implements Serializable {
         }
     }
     
+    //load saved values
     private void loadValues(File file) {
         try {
             AppearanceSettingsSave loadSave = (AppearanceSettingsSave) MineSweeperFiles.readSerializedFile(file);
             AppearanceValues oldValues = loadSave.createAppearanceValuesFromSave();
             appearanceValues = new AppearanceValues(oldValues);
         } catch (IOException | ClassNotFoundException e) {
+            //if fails, revert to default settings
             appearanceValues = AppearanceValues.defaultValues();
             e.printStackTrace();
         }
     }
     
+    //load custom colors from save
     private void loadCustoms(File file) {
         try {
             AppearanceSettingsSave loadSave = (AppearanceSettingsSave) MineSweeperFiles.readSerializedFile(file);
@@ -154,11 +165,11 @@ public class AppearanceSettings implements Serializable {
             background.getCustomColors().addAll(oldCustomColors.get(4));
             statusBar.getCustomColors().addAll(oldCustomColors.get(5));
         } catch (IOException | ClassNotFoundException e) {
-            appearanceValues = AppearanceValues.defaultValues();
             e.printStackTrace();
         }
     }
     
+    //show window
     public void showWindow() {
         previous.setValues(appearanceValues);
         stage.showAndWait();

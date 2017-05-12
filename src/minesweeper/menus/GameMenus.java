@@ -17,6 +17,7 @@ public class GameMenus extends MenuBar {
     MenuItem exitItem = new MenuItem("Exit");
     
     public GameMenus() {
+        //set keyboard shortcuts
         newGameItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN));
         optionsItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN));
         changeAppearanceItem.setAccelerator(new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN));

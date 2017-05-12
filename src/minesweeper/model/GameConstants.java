@@ -8,6 +8,7 @@ public class GameConstants implements Serializable {
     public final int columns;
     public final int mines;
     
+    //object that holds settings for current game
     public GameConstants(Integer rows, Integer columns, Integer mines) {
         if (rows * columns >= mines) {
             this.rows = rows;

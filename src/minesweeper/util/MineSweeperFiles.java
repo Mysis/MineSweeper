@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 public final class MineSweeperFiles implements Serializable {
     
+    //read a serialized object
     public static Object readSerializedFile(File file) throws IOException, ClassNotFoundException {
         Object returnObject;
         FileInputStream fileIn = new FileInputStream(file);
@@ -20,6 +21,7 @@ public final class MineSweeperFiles implements Serializable {
         return returnObject;
     }
     
+    //write a serializable object
     public static void writeSerializedObject(Object object, File file) throws IOException {
         FileOutputStream fileOut = new FileOutputStream(file);
         ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);

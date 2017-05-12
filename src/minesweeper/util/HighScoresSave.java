@@ -12,13 +12,14 @@ import minesweeper.menus.GameSettings;
     
 public class HighScoresSave implements Serializable {
 
-    private boolean hasMax;
+    private boolean hasMax; //does this list have a max size
     private int maxSize;
     private transient ObservableMap<GameSettings.Type, ObservableList<Long>> scores;
-    private HashMap<GameSettings.Type, List<Long>> mapToSave;
+    private HashMap<GameSettings.Type, List<Long>> mapToSave; //serializable map
     private GameSettings.Type lastTypeInHighScoresWindow = GameSettings.Type.BEGINNER;
     private boolean suppressResetConfirmation = false;
 
+    //init without max
     public HighScoresSave() {
         this.hasMax = false;
         scores = FXCollections.observableHashMap();
@@ -28,6 +29,7 @@ public class HighScoresSave implements Serializable {
             }
         }
     }
+    //init with max
     public HighScoresSave(int maxSize) {
         this.hasMax = true;
         this.maxSize = maxSize;
@@ -39,6 +41,7 @@ public class HighScoresSave implements Serializable {
         }
     }
 
+    //add score to high score table if possible, return true if score is added, false if score is not added
     public boolean addScoreIfPossible(GameSettings.Type type, Long score) {
         if (type != GameSettings.Type.CUSTOM) {
             ObservableList<Long> table = scores.get(type);
@@ -63,6 +66,7 @@ public class HighScoresSave implements Serializable {
         scores.get(type).clear();
     }
     
+    //prep object to be serialized
     public void prepForSave() {
         mapToSave = new HashMap<>();
         for (GameSettings.Type type : GameSettings.Type.values()) {
@@ -72,10 +76,12 @@ public class HighScoresSave implements Serializable {
             }
         }
     }
+    //return to normal state after (this) object has been serialized
     public void loadFromSave() {
-        scores = new SimpleMapProperty<>(FXCollections.observableHashMap());
+        scores = new SimpleMapProperty<>(FXCollections.observableHashMap()); //create observable map
         for (GameSettings.Type type : GameSettings.Type.values()) {
             if (type != GameSettings.Type.CUSTOM) {
+                //if previous scores exists, fill with previous scores, otherwise create empty list
                 if (mapToSave.get(type) != null) {
                     scores.put(type, FXCollections.observableArrayList(mapToSave.get(type)));
                 } else {
@@ -94,6 +100,7 @@ public class HighScoresSave implements Serializable {
     
     public void setHasMax(boolean val) {
         hasMax = val;
+        //trim list sizes if new max is less than total number of scores
         if (hasMax) {
             for (ObservableList<Long> table : scores.values()) {
                 if (table.size() > maxSize) {

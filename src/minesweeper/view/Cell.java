@@ -27,7 +27,7 @@ public class Cell extends StackPane {
     FieldModel fieldModel;
     CellModel cellModel;
     
-    Rectangle shape;
+    Rectangle shape; //background of cell
     Polygon flag;
     IntegerBinding size;
     AppearanceValues appearanceValues;
@@ -39,6 +39,7 @@ public class Cell extends StackPane {
         this.cellModel = cellModel;
         this.appearanceValues = appearanceValues;
         
+        //update cell if a mine is relocated
         InvalidationListener relocateCellListener = (o -> {
             removeContent();
             addContent();
@@ -46,24 +47,28 @@ public class Cell extends StackPane {
         cellModel.surroundingProperty().addListener(relocateCellListener);
         cellModel.mineProperty().addListener(relocateCellListener);
 
+        //init background
         shape = new Rectangle();
         shape.widthProperty().bind(size);
         shape.heightProperty().bind(size);
         shape.fillProperty().bind(Bindings.when(cellModel.stateProperty().isEqualTo(State.REVEALED)).then(appearanceValues.cellRevealedColorProperty()).otherwise(appearanceValues.cellColorProperty()));
         getChildren().add(shape);
         
+        //init flag with proportions
         flag = new Polygon(
                 0, 0, 
-                0.5, 0.25, 
+                0.5, 0.25, //<-- ie 0.25 point is 25% down the entire size
                 0, 0.5);
         flag.fillProperty().bind(appearanceValues.flagColorProperty());
         setAlignment(flag, Pos.CENTER);
         getChildren().add(flag);
         
+        //scale flag based on size binding
         flag.scaleXProperty().bind(size);
         flag.scaleYProperty().bind(size);
         flag.visibleProperty().bind(cellModel.stateProperty().isEqualTo(State.FLAGGED));
         
+        //set mouse click events
         setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 cellModel.reveal();
@@ -73,6 +78,7 @@ public class Cell extends StackPane {
         });
     }
     
+    //colors of clue numbers
     private Color getSurroundingColor(int surrounding) {
         switch (surrounding) {
             case 1:
@@ -96,8 +102,10 @@ public class Cell extends StackPane {
         }
     }
     
+    //add content that can change to cell (ie if mine is relocated)
     public void addContent() {
         if (!cellModel.getMine()) {
+            //fill with number if not mine
             if (cellModel.getSurrounding() > 0) {
                 Label surroundingText = new Label();
                 setAlignment(surroundingText, Pos.CENTER);
@@ -109,13 +117,13 @@ public class Cell extends StackPane {
                 surroundingText.visibleProperty().bind(cellModel.stateProperty().isEqualTo(State.REVEALED));
             }
             
+            //create X on flag if is incorrectly placed at the end of the game
             Line topLeftBottomRight = new Line(-0.25, -0.25, 0.25, 0.25);
             topLeftBottomRight.setStrokeWidth(2);
-            //topLeftBottomRight.setStroke(null);
             Line topRightBottomLeft = new Line(0.25, -0.25, -0.25, 0.25);
             topRightBottomLeft.setStrokeWidth(2);
-            //topRightBottomLeft.setStroke(null);
             
+            //is incorrectly placed
             BooleanBinding incorrectFlag = new BooleanBinding() {
                 {
                     super.bind(cellModel.stateProperty(), fieldModel.gameOverProperty());
@@ -129,6 +137,7 @@ public class Cell extends StackPane {
                     }
                 }
             };
+            //scale with size
             topLeftBottomRight.strokeProperty().bind(appearanceValues.cellRevealedColorProperty());
             topRightBottomLeft.strokeProperty().bind(appearanceValues.cellRevealedColorProperty());
             topLeftBottomRight.startXProperty().bind(size.multiply(-0.25));
@@ -146,6 +155,7 @@ public class Cell extends StackPane {
             getChildren().add(topLeftBottomRight);
             getChildren().add(topRightBottomLeft);
         } else {
+            //create ellipse for mine
             Ellipse mine = new Ellipse(.25, .25);
             mine.fillProperty().bind(appearanceValues.mineColorProperty());
             setAlignment(mine, Pos.CENTER);
@@ -156,6 +166,7 @@ public class Cell extends StackPane {
         }
     }
     
+    //remove content that can change (ie if mine is relocated)
     public void removeContent() {
         List<Node> save = new ArrayList<>();
         save.add(shape);

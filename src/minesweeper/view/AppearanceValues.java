@@ -9,6 +9,7 @@ import minesweeper.model.GameConstants;
 
 public class AppearanceValues {
     
+    //currently, size options are not configurable, possibly in a later update?
     private final DoubleProperty gameBoundarySize = new SimpleDoubleProperty();
     private final DoubleProperty cellStartSize = new SimpleDoubleProperty();
 
@@ -19,6 +20,7 @@ public class AppearanceValues {
     private final ObjectProperty<Color> backgroundColor = new SimpleObjectProperty<>();
     private final ObjectProperty<Color> statusBarColor = new SimpleObjectProperty<>();
     
+    //object that holds all current colors for the game
     public AppearanceValues(double gameBoundarySize, double cellStartSize, Color cellColor, Color cellRevealedColor, Color mineColor, Color flagColor, Color backgroundColor, Color statusBarColor) {
         setValues(gameBoundarySize, cellStartSize, cellColor, cellRevealedColor, mineColor, flagColor, backgroundColor, statusBarColor);
     }
@@ -27,6 +29,7 @@ public class AppearanceValues {
         setValues(constants);
     }
     
+    //change all values
     public void setValues(double gameBoundarySize, double cellStartSize, Color cellColor, Color cellRevealedColor, Color mineColor, Color flagColor, Color backgroundColor, Color statusBarColor) {
         setGameBoundarySize(gameBoundarySize);
         setCellStartSize(cellStartSize);
@@ -49,6 +52,7 @@ public class AppearanceValues {
         setStatusBarColor(constants.getStatusBarColor());
     }
     
+    //calculate how big the field should be with current sizes
     public static double[] calculateFieldStartSize(GameConstants gameConstants, AppearanceValues appearanceValues) {
         double[] size = new double[2];
         size[0] = gameConstants.columns * appearanceValues.getCellStartSize() + gameConstants.columns + appearanceValues.getGameBoundarySize() * 2;

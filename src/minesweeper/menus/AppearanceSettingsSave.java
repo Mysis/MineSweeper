@@ -16,11 +16,14 @@ public class AppearanceSettingsSave implements Serializable {
     
     public AppearanceSettingsSave(AppearanceValues appearance, List<ObservableList<Color>> customColorValues) {
         
+        //convert observable values to serializable lists
+        //save size settings
         sizes = new ArrayList<>();
         Collections.addAll(sizes,
                 appearance.getGameBoundarySize(),
                 appearance.getCellStartSize());
         
+        //save current color selections
         List<Color> colorValues = new ArrayList<>();
         Collections.addAll(colorValues, 
                 appearance.getCellColor(),
@@ -34,6 +37,7 @@ public class AppearanceSettingsSave implements Serializable {
             colors.add(color.toString());
         }
         
+        //save custom colors
         customColors = new ArrayList<>();
         for (ObservableList<Color> customColorSet : customColorValues) {
             List<String> set = new ArrayList<>();
@@ -44,6 +48,7 @@ public class AppearanceSettingsSave implements Serializable {
         }
     }
     
+    //creates appearance values from save
     public AppearanceValues createAppearanceValuesFromSave() {
         return new AppearanceValues(
                 sizes.get(0), 

@@ -31,22 +31,24 @@ public class StatusBar extends BorderPane {
     
     Label flagsLeftLabel;
     
+    //stopwatch that is updated each frame
     private class StopWatch extends AnimationTimer {
-        private boolean start = false;
-        private long startTime;
-        private ReadOnlyLongWrapper timeMillis = new ReadOnlyLongWrapper(0);
+        private boolean start = false; //was the timer just started
+        private long startTime; //timestamp when the timer was started
+        private ReadOnlyLongWrapper timeMillis = new ReadOnlyLongWrapper(0); //current time
         @Override
         public void start() {
-            start = true;
+            start = true; //was just started
             super.start();
         }
         @Override
         public void handle(long timestamp) {
             if (start) {
+                //if timer was just started, set timestamp for when it was started
                 startTime = timestamp;
                 start = false;
             }
-            timeMillis.set((timestamp - startTime) / 1000000);
+            timeMillis.set((timestamp - startTime) / 1000000); //current timestamp minus start timestamp, converted to milliseconds
         }
         public void resetTime() {
             timeMillis.set(0);
@@ -59,6 +61,8 @@ public class StatusBar extends BorderPane {
     public StatusBar(AppearanceValues appearanceValues) {
         
         timer = new StopWatch();
+        
+        //create listeners that are rebound to the new model if there is a new game
         timeStartListener = (observable, oldVal, newVal) -> {
             if (!newVal) {
                 timer.start();
@@ -70,6 +74,7 @@ public class StatusBar extends BorderPane {
             }
         };
         
+        //current time
         StringBinding timeString = new StringBinding() {
             {
                 super.bind(timer.timeMillisProperty());
@@ -80,6 +85,7 @@ public class StatusBar extends BorderPane {
             }
         };
         
+        //init time left label
         Label timeLeftLabel = new Label();
         timeLeftLabel.textProperty().bind(Bindings.concat("Time: ", timeString));
         ObjectBinding<Color> textColor = new ObjectBinding<Color>() {
@@ -87,9 +93,10 @@ public class StatusBar extends BorderPane {
                 super.bind(appearanceValues.statusBarColorProperty());
             }
             @Override
+            //make text black or white based on status bar background color
             protected Color computeValue() {
                 Color backColor = appearanceValues.statusBarColorProperty().get();
-                double colorValue = 1 - (.299 * backColor.getRed() + .597 * backColor.getGreen() + .114 * backColor.getBlue());
+                double colorValue = 1 - (.299 * backColor.getRed() + .597 * backColor.getGreen() + .114 * backColor.getBlue()); //human affinity to the color green
                 if (colorValue < 0.5) {
                     return Color.BLACK;
                 } else {
@@ -99,6 +106,7 @@ public class StatusBar extends BorderPane {
         };
         timeLeftLabel.textFillProperty().bind(textColor);
         
+        //init flags placed marker
         Polygon flagIcon = new Polygon(
                 6.25, 6.25,
                 18.75, 12.5,
@@ -109,6 +117,7 @@ public class StatusBar extends BorderPane {
         flagsLeftLabel.textFillProperty().bind(textColor);
         flagsLeftLabel.setAlignment(Pos.CENTER_RIGHT);
         
+        //hold flag icon and ?/? label
         GridPane flagBox = new GridPane();
         flagBox.add(flagIcon, 0, 0);
         flagBox.setValignment(flagIcon, VPos.CENTER);
@@ -119,10 +128,12 @@ public class StatusBar extends BorderPane {
         setLeft(timeLeftLabel);
         setRight(flagBox);
         
+        //bind background color
         backgroundProperty().bind(Bindings.createObjectBinding(() -> new Background(new BackgroundFill(appearanceValues.statusBarColorProperty().get(), CornerRadii.EMPTY, Insets.EMPTY)), appearanceValues.statusBarColorProperty()));
         setPadding(new Insets(5, 20, 5, 20));
     }
     
+    //new game
     public void newGame(FieldModel model) {
         try {
             this.model.firstCellProperty().removeListener(timeStartListener);
@@ -142,14 +153,15 @@ public class StatusBar extends BorderPane {
         this.model = model;
     }
     
+    //convert milliseconds into readable string (HH:MM:SS.LLL)
     public static String convertTimeMillisToString(long millis) {
-        if (millis >= 3600000) {
+        if (millis >= 3600000) { //if more than an hour has passed
             return String.format("%1$tH:%1$tM:%1$tS.%1$tL", millis);
-        } else if (millis >= 60000) {
+        } else if (millis >= 60000) { //if more than a minute has passed
             return String.format("%1$tM:%1$tS.%1$tL", millis);
-        } else if (millis >= 1000) {
+        } else if (millis >= 1000) { //if more than a seconds has passed
             return String.format("%1$tS.%1$tL", millis);
-        } else {
+        } else { //if less than a second has passed
             return String.format("0.%1$tL", millis);
         }
     }

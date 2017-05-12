@@ -3,7 +3,8 @@ package minesweeper.util;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import javafx.scene.control.TextFormatter;
-    
+
+//filter to prevent user from entering letters into a textfield
 public class NumberFilter implements UnaryOperator<TextFormatter.Change> {
 
     private final Pattern pattern;
