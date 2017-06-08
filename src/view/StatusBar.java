@@ -20,6 +20,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import minesweeper.model.FieldModel;
+import minesweeper.util.TimeConverter;
 
 public class StatusBar extends BorderPane {
     
@@ -81,7 +82,7 @@ public class StatusBar extends BorderPane {
             }
             @Override
             protected String computeValue() {
-                return convertTimeMillisToString(timer.timeMillisProperty().get());
+                return TimeConverter.convertTimeMillisToString(timer.timeMillisProperty().get());
             }
         };
         
@@ -152,20 +153,7 @@ public class StatusBar extends BorderPane {
     public void setModel(FieldModel model) {
         this.model = model;
     }
-    
-    //convert milliseconds into readable string (HH:MM:SS.LLL)
-    public static String convertTimeMillisToString(long millis) {
-        if (millis >= 3600000) { //if more than an hour has passed
-            return String.format("%1$tH:%1$tM:%1$tS.%1$tL", millis);
-        } else if (millis >= 60000) { //if more than a minute has passed
-            return String.format("%1$tM:%1$tS.%1$tL", millis);
-        } else if (millis >= 1000) { //if more than a seconds has passed
-            return String.format("%1$tS.%1$tL", millis);
-        } else { //if less than a second has passed
-            return String.format("0.%1$tL", millis);
-        }
-    }
-    
+
     public ReadOnlyLongProperty timeProperty() {
         return timer.timeMillisProperty();
     }
@@ -173,6 +161,6 @@ public class StatusBar extends BorderPane {
         return timer.timeMillisProperty().get();
     }
     public String getTimeString() {
-        return convertTimeMillisToString(timer.timeMillisProperty().get());
+        return TimeConverter.convertTimeMillisToString(timer.timeMillisProperty().get());
     }
 }

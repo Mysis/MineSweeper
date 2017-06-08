@@ -7,32 +7,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.Node;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-import minesweeper.util.HighScoresSave;
-import minesweeper.util.MineSweeperFiles;
-import minesweeper.util.NumberFilter;
-import minesweeper.view.StatusBar;
+import minesweeper.util.*;
 
 public class HighScores {
 
@@ -76,9 +68,9 @@ public class HighScores {
 
         //init listview
         ListView<Long> scoresView = new ListView<>();
-        scoresView.setFocusModel(null);
         scoresView.setPrefHeight(122);
         scoresView.setPrefWidth(100);
+        scoresView.setSelectionModel(new DisabledMultipleSelectionModel<>());
 
         //convert raw longs to readable strings (MM:SS.LLL)
         scoresView.setCellFactory(new Callback<ListView<Long>, ListCell<Long>>() {
@@ -88,7 +80,7 @@ public class HighScores {
                     @Override
                     protected void updateItem(Long item, boolean empty) {
                         super.updateItem(item, empty);
-                        setText(item == null ? "" : StatusBar.convertTimeMillisToString(item));
+                        setText(item == null ? "" : TimeConverter.convertTimeMillisToString(item));
                     }
                 };
             }
@@ -136,7 +128,7 @@ public class HighScores {
         buttons.setAlignment(Pos.BOTTOM_RIGHT);
         
         //set reset button action
-        reset.setOnAction(e -> {
+        reset.setOnAction((ActionEvent e) -> {
             //confirmation dialog if user has not suppressed dialog
             if (!scores.getSuppressResetConfimation()) {
                 //create custom alert with option to suppress future confirmations
@@ -165,10 +157,20 @@ public class HighScores {
                 //clear high scores and save suppress option if 'ok' is selected
                 if (result.isPresent() && result.get() == ButtonType.OK) {
                     scores.resetScoresOfType(highScoreType.getValue());
+                    try {
+                        applySettings();
+                    } catch (IOException exception) {
+                        exception.printStackTrace();
+                    }
                     scores.setSuppressResetConfirmation(optOut.isSelected());
                 }
             } else {
                 scores.resetScoresOfType(highScoreType.getValue());
+                try {
+                    applySettings();
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
             }
         });
 
@@ -191,6 +193,17 @@ public class HighScores {
             }
         };
         scoresView.itemsProperty().bind(scoresListViewBinding);
+        BooleanBinding scoresEmpty = new BooleanBinding() {
+            {
+                super.bind(scoresListViewBinding);
+            }
+            @Override
+            protected boolean computeValue() {
+                super.bind(scoresListViewBinding.get());
+                return scoresListViewBinding.get().isEmpty();
+            }
+        };
+        reset.disableProperty().bind(scoresEmpty);
 
         //save last type each time a new type is selected (ie choice box is the same as the last selected when user reopends window)
         highScoreType.valueProperty().addListener((observable, oldVal, newVal) -> {

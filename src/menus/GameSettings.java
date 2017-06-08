@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.EnumMap;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -17,6 +19,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.Scene;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import minesweeper.model.GameConstants;
@@ -48,7 +51,7 @@ public class GameSettings implements Serializable {
         BEGINNER,
         INTERMEDIATE,
         EXPERT,
-        CUSTOM;
+        CUSTOM
     }
     
     public GameSettings(Stage ownerStage) {
@@ -98,6 +101,34 @@ public class GameSettings implements Serializable {
         mines = new TextField();
         mines.setPrefColumnCount(3);
         customGrid.add(mines, 1, 2);
+
+        BooleanBinding invalidSettings = new BooleanBinding() {
+            {
+                super.bind(rows.textProperty(), columns.textProperty(), mines.textProperty());
+            }
+            @Override
+            protected boolean computeValue() {
+                if (!rows.getText().equals("") && !columns.getText().equals("") && !mines.getText().equals("")) {
+                    if (Integer.parseInt(rows.getText()) * Integer.parseInt(columns.getText()) < Integer.parseInt(mines.getText())) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
+        StringBinding invalidTextFill = Bindings.when(invalidSettings).then("-fx-text-fill: red;").otherwise("");
+        rows.styleProperty().bind(invalidTextFill);
+        columns.styleProperty().bind(invalidTextFill);
+        mines.styleProperty().bind(invalidTextFill);
+        Label invalidSettingsWarning = new Label("This board isn't possible");
+        invalidSettingsWarning.setTextFill(Color.RED);
+        customGrid.add(invalidSettingsWarning, 0, 3);
+        invalidSettings.addListener((event, oldVal, newVal) -> {
+            if (!newVal) {
+                invalidSettingsWarning.setVisible(false);
+            }
+        });
+        invalidSettingsWarning.setVisible(false);
         
         //only allow numbers in text field, maximum of three digits
         rows.setTextFormatter(new TextFormatter<>(new NumberFilter(3)));
@@ -140,8 +171,13 @@ public class GameSettings implements Serializable {
             } else if (gameTypeGroup.getSelectedToggle() == expert) {
                 currentType = Type.EXPERT;
             } else if (gameTypeGroup.getSelectedToggle() == custom) {
-                currentType = Type.CUSTOM;
-                typeValues.put(Type.CUSTOM, new GameConstants(Integer.parseInt(rows.getText()), Integer.parseInt(columns.getText()), Integer.parseInt(mines.getText())));
+                if (!invalidSettings.get()) {
+                    currentType = Type.CUSTOM;
+                    typeValues.put(Type.CUSTOM, new GameConstants(Integer.parseInt(rows.getText()), Integer.parseInt(columns.getText()), Integer.parseInt(mines.getText())));
+                } else {
+                    invalidSettingsWarning.setVisible(true);
+                    return;
+                }
             }
             saveSettings(save);
             Stage stage = (Stage) cancel.getScene().getWindow();
@@ -154,6 +190,8 @@ public class GameSettings implements Serializable {
         
         Scene scene = new Scene(root);
         stage = new Stage();
+
+        stage.setOnCloseRequest(e -> invalidSettingsWarning.setVisible(false));
         
         //restrict main window if this window is open
         stage.setScene(scene);

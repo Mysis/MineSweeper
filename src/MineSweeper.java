@@ -19,6 +19,7 @@ import minesweeper.menus.GameMenus;
 import minesweeper.menus.GameSettings;
 import minesweeper.menus.HighScores;
 import minesweeper.util.HighScoresSave;
+import minesweeper.util.TimeConverter;
 import minesweeper.view.AppearanceValues;
 import minesweeper.view.GameContainer;
 import minesweeper.view.StatusBar;
@@ -176,7 +177,7 @@ public class MineSweeper extends Application implements Serializable {
         //create dialog for game over message
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         //create stringbuilder to create content of dialog
-        StringBuilder content = new StringBuilder("Time: " + StatusBar.convertTimeMillisToString(timeMillis));
+        StringBuilder content = new StringBuilder("Time: " + TimeConverter.convertTimeMillisToString(timeMillis));
         if (gameMode != GameSettings.Type.CUSTOM) {
             if (newScore) {
                 content.append("\n\nYou made a new highscore!");
@@ -187,7 +188,7 @@ public class MineSweeper extends Application implements Serializable {
                 content.append("\n").
                         append((iterator.nextIndex() + 1)).
                         append(": ").
-                        append(StatusBar.convertTimeMillisToString(iterator.next()));
+                        append(TimeConverter.convertTimeMillisToString(iterator.next()));
             }
         }
         alert.setContentText(content.toString());
