@@ -104,7 +104,7 @@ public class HighScoresSave implements Serializable {
         if (hasMax) {
             for (ObservableList<Long> table : scores.values()) {
                 if (table.size() > maxSize) {
-                    table.subList(maxSize - 1, table.size()).clear();
+                    table.subList(maxSize, table.size()).clear();
                 }
             }
         }
