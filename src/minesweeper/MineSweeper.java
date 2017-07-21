@@ -62,6 +62,27 @@ public class MineSweeper extends Application implements Serializable {
         mainScene = new Scene(root);
         mainScene.fillProperty().bind(appearanceSettings.getConstants().backgroundColorProperty());
 
+        //bind gameContainer width and height to scene width and height
+        gameContainer.prefWidthProperty().bind(mainScene.widthProperty());
+        DoubleBinding prefHeight = new DoubleBinding() {
+            {
+                super.bind(mainScene.heightProperty(), root.getChildren());
+            }
+            @Override
+            protected double computeValue() {
+                double value = mainScene.heightProperty().get();
+                for (Node node : root.getChildren()) {
+                    if (node instanceof Region) {
+                        if (node != gameContainer) {
+                            value -= ((Region) node).heightProperty().get();
+                        }
+                    }
+                }
+                return value;
+            }
+        };
+        gameContainer.prefHeightProperty().bind(prefHeight);
+
         //set actions for menu options
         menu.newGameItem().setOnAction(e -> newGame());
         menu.optionsItem().setOnAction(e -> {
@@ -126,40 +147,19 @@ public class MineSweeper extends Application implements Serializable {
             }
         });
 
-        //get size of game, and set stage min width and height accordingly
-        double[] size = AppearanceValues.calculateFieldStartSize(constants, appearanceSettings.getConstants());
-        primaryStage.setMinWidth(0);
-        primaryStage.setMinHeight(0);
-        //unbind gameContainer width and height for manual setting, then shrink stage to new size
-        gameContainer.prefWidthProperty().unbind();
-        gameContainer.prefHeightProperty().unbind();
-        gameContainer.setPrefSize(size[0], size[1]);
-        primaryStage.sizeToScene();
-
-        //rebind width and height of gameContainer to scene size
-        gameContainer.prefWidthProperty().bind(mainScene.widthProperty());
-        DoubleBinding prefHeight = new DoubleBinding() {
-            {
-                super.bind(mainScene.heightProperty(), root.getChildren());
-            }
-            @Override
-            protected double computeValue() {
-                double value = mainScene.heightProperty().get();
-                for (Node node : root.getChildren()) {
-                    if (node instanceof Region) {
-                        if (node != gameContainer) {
-                            value -= ((Region) node).heightProperty().get();
-                        }
-                    }
+        //calculate new stage min width and height
+        double[] gameSize = AppearanceValues.calculateFieldStartSize(constants, appearanceSettings.getConstants());
+        double extraHeight = 0;
+        for (Node node : root.getChildren()) {
+            if (node instanceof Region) {
+                if (node != gameContainer) {
+                    extraHeight += ((Region) node).heightProperty().get();
                 }
-                return value;
             }
-        };
-        gameContainer.prefHeightProperty().bind(prefHeight);
-
-        //set stage min width and height with new stage size
-        primaryStage.setMinWidth(primaryStage.getWidth());
-        primaryStage.setMinHeight(primaryStage.getHeight());
+        }
+        //add window decorations to min width and height
+        primaryStage.setMinWidth(gameSize[0] + mainScene.getWindow().getWidth() - mainScene.getWidth());
+        primaryStage.setMinHeight(gameSize[1] + mainScene.getWindow().getHeight() - mainScene.getHeight() + extraHeight);
     }
 
     //called when the game ends
@@ -187,7 +187,7 @@ public class MineSweeper extends Application implements Serializable {
             while (iterator.hasNext()) {
                 content.append("\n").
                         append((iterator.nextIndex() + 1)).
-                        append(": ").
+                        append(") ").
                         append(TimeConverter.convertTimeMillisToString(iterator.next()));
             }
         }

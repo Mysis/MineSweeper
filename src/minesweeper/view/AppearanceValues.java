@@ -60,7 +60,6 @@ public class AppearanceValues {
         return size;
     }
 
-
     public static AppearanceValues defaultValues() {
         return new AppearanceValues(20, 25, Color.GREY, Color.LIGHTGREY, Color.BLACK, Color.RED, Color.DARKRED, Color.WHITE);
     }
